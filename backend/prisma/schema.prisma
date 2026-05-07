@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Person {
+  id       Int             @id @default(autoincrement())
+  name     String          @unique
+  stickers PersonSticker[]
+}
+
+model PersonSticker {
+  id        Int    @id @default(autoincrement())
+  personId  Int
+  stickerId String
+  count     Int    @default(0)
+  person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, stickerId])
+  @@index([personId])
+}

@@ -1,0 +1,21 @@
+import { Icon } from './Icons.jsx'
+
+export function SearchBar({ value, onChange }) {
+  return (
+    <div className="searchbar">
+      <Icon.Search />
+      <input
+        type="text"
+        placeholder="Search sticker code · MEX 7, FWC 3, ARG…"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        autoComplete="off"
+      />
+      {value && (
+        <button className="btn ghost" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => onChange('')}>
+          clear
+        </button>
+      )}
+    </div>
+  )
+}
