@@ -1,4 +1,20 @@
 import { Icon } from './Icons.jsx'
+import { normalize } from '../data.js'
+
+function Highlight({ text, query }) {
+  if (!query || !text) return <>{text}</>
+  const normText = normalize(text).toUpperCase()
+  const normQuery = normalize(query)
+  const idx = normText.indexOf(normQuery)
+  if (idx === -1) return <>{text}</>
+  return <>
+    {text.slice(0, idx)}
+    <mark style={{ background: 'var(--cyan)', color: 'var(--bg)', borderRadius: 2, padding: '0 1px' }}>
+      {text.slice(idx, idx + query.length)}
+    </mark>
+    {text.slice(idx + query.length)}
+  </>
+}
 
 function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
@@ -7,7 +23,7 @@ function FlagChip({ colors }) {
 function countOf(personData, id) { return (personData && personData[id]) || 0 }
 function dupeCount(personData, id) { return Math.max(0, countOf(personData, id) - 1) }
 
-function DupeSticker({ sticker, count, onPlus, onMinus, isFWC }) {
+function DupeSticker({ sticker, count, onPlus, onMinus, isFWC, searchQ }) {
   const owned = count >= 1
   const dupes = Math.max(0, count - 1)
   const isLogo = !isFWC && sticker.num === 0
@@ -25,10 +41,15 @@ function DupeSticker({ sticker, count, onPlus, onMinus, isFWC }) {
       {!isFWC && (
         <>
           <div className="sticker-tag">{isLogo ? 'Federation' : 'Player'}</div>
-          <div className="sticker-name">{sticker.label}</div>
+          <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
         </>
       )}
-      {isFWC && <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>}
+      {isFWC && (
+        <>
+          <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
+          <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
+        </>
+      )}
 
       <div className="dupe-controls">
         <button
@@ -56,7 +77,7 @@ function DupeSticker({ sticker, count, onPlus, onMinus, isFWC }) {
   )
 }
 
-export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson }) {
+export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson, searchQ }) {
   const totalDupes = stickers.reduce((acc, s) => acc + dupeCount(personData, s.id), 0)
   return (
     <div className="page">
@@ -71,7 +92,7 @@ export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activeP
           )}
           <div className="page-titles">
             <div className="pt-eyebrow">{isFWC ? 'Dupes · FWC' : `Dupes · Group ${team.group} · ${team.code}`}</div>
-            <h2>{isFWC ? 'FIFA World Cup' : team.name}</h2>
+            <h2><Highlight text={isFWC ? 'FIFA World Cup' : team.name} query={searchQ} /></h2>
             <div className="pt-meta">{activePerson}'s dupes · {totalDupes} extra copies on this page</div>
           </div>
         </div>
@@ -90,6 +111,7 @@ export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activeP
             onPlus={() => onAdjust(s.id, +1)}
             onMinus={() => onAdjust(s.id, -1)}
             isFWC={isFWC}
+            searchQ={searchQ}
           />
         ))}
       </div>

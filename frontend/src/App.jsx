@@ -243,6 +243,7 @@ export default function App() {
                 personData={personData}
                 onAdjust={(id, d) => adjustCount(activePerson, id, d)}
                 activePerson={activePerson}
+                searchQ={searchQ}
               />
             )}
           </div>
@@ -253,7 +254,7 @@ export default function App() {
         <Trades tradeMatches={tradeMatches} activePerson={activePerson} />
       )}
 
-      <div className="footer">// COLLECTION TRACKER · WC26 EDITION · OFFLINE PROTOTYPE</div>
+      <div className="footer">// COLLECTION TRACKER · WC26 EDITION</div>
 
       {confirm && (
         <ConfirmModal
