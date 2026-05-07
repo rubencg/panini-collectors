@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM } from './data.js'
+import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, normalize } from './data.js'
 import { Header } from './components/Header.jsx'
 import { PersonTabs } from './components/PersonTabs.jsx'
 import { ViewTabs } from './components/ViewTabs.jsx'
@@ -59,15 +59,25 @@ export default function App() {
       .catch(() => setLoading(false))
   }, [])
 
-  // Jump to team when search matches a code
+  // Jump to team when search matches a code or player name
   useEffect(() => {
-    const q = search.trim().toUpperCase()
+    const q = search.trim()
     if (!q) return
-    const m = q.match(/^([A-Z]{3})\s*-?\s*(\d+)?$/)
+    const qUp = q.toUpperCase()
+    // Match by team code: MEX, MEX-3, FWC 2, etc.
+    const m = qUp.match(/^([A-Z]{3})\s*-?\s*(\d+)?$/)
     if (m) {
       const code = m[1]
-      if (code === 'FWC') setActivePage('FWC')
-      else if (TEAMS.find(t => t.code === code)) setActivePage(code)
+      if (code === 'FWC') { setActivePage('FWC'); return }
+      if (TEAMS.find(t => t.code === code)) { setActivePage(code); return }
+    }
+    // Match by player name (case- and accent-insensitive)
+    const qNorm = normalize(q).toUpperCase()
+    for (const [code, labels] of Object.entries(TEAM_LABELS)) {
+      if (labels.some(l => normalize(l).toUpperCase().includes(qNorm))) {
+        setActivePage(code)
+        return
+      }
     }
   }, [search])
 
@@ -223,6 +233,7 @@ export default function App() {
                 ownedCount={pageOwned}
                 progress={pageProgress}
                 activePerson={activePerson}
+                searchQ={searchQ}
               />
             ) : (
               <DupesPage

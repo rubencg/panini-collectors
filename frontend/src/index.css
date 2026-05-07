@@ -719,8 +719,15 @@ input { font-family: inherit; }
   );
   pointer-events: none;
 }
-.sticker.dupe-sticker.owned { opacity: 0.7; }
-.sticker.dupe-sticker.missing { opacity: 0.4; }
+.sticker.dupe-sticker.owned {
+  background: oklch(0.78 0.16 60 / 0.08);
+  border-color: oklch(0.78 0.16 60 / 0.6);
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.sticker.dupe-sticker.owned .sticker-name {
+  color: var(--warn);
+}
+.sticker.dupe-sticker.missing { opacity: 0.35; }
 
 .dupe-pill {
   font-size: 11px;

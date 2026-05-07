@@ -1,13 +1,29 @@
 import { Icon } from './Icons.jsx'
+import { normalize } from '../data.js'
 
 function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
 }
 
+function Highlight({ text, query }) {
+  if (!query || !text) return <>{text}</>
+  const normText = normalize(text).toUpperCase()
+  const normQuery = normalize(query)
+  const idx = normText.indexOf(normQuery)
+  if (idx === -1) return <>{text}</>
+  return <>
+    {text.slice(0, idx)}
+    <mark style={{ background: 'var(--cyan)', color: 'var(--bg)', borderRadius: 2, padding: '0 1px' }}>
+      {text.slice(idx, idx + query.length)}
+    </mark>
+    {text.slice(idx + query.length)}
+  </>
+}
+
 function countOf(personData, id) { return (personData && personData[id]) || 0 }
 function inAlbum(personData, id) { return countOf(personData, id) >= 1 }
 
-function AlbumSticker({ sticker, count, onClick, isFWC }) {
+function AlbumSticker({ sticker, count, onClick, isFWC, searchQ }) {
   const owned = count >= 1
   const isLogo = !isFWC && sticker.num === 0
   const dupes = Math.max(0, count - 1)
@@ -28,12 +44,12 @@ function AlbumSticker({ sticker, count, onClick, isFWC }) {
       {!isFWC && (
         <>
           <div className="sticker-tag">{isLogo ? 'Federation' : 'Player'}</div>
-          <div className="sticker-name">{sticker.label}</div>
+          <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
         </>
       )}
       {isFWC && (
         <>
-          <div className="sticker-name">{sticker.label}</div>
+          <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
           <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
         </>
       )}
@@ -44,7 +60,7 @@ function AlbumSticker({ sticker, count, onClick, isFWC }) {
   )
 }
 
-export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson }) {
+export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ }) {
   const allOwned = ownedCount === count
   const noneOwned = ownedCount === 0
   return (
@@ -60,7 +76,7 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkA
           )}
           <div className="page-titles">
             <div className="pt-eyebrow">{isFWC ? 'Intro · FWC' : `Group ${team.group} · ${team.code}`}</div>
-            <h2>{isFWC ? 'FIFA World Cup' : team.name}</h2>
+            <h2><Highlight text={isFWC ? 'FIFA World Cup' : team.name} query={searchQ} /></h2>
             <div className="pt-meta">{activePerson}'s album · {ownedCount}/{count} collected</div>
           </div>
         </div>
@@ -93,6 +109,7 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkA
             count={countOf(personData, s.id)}
             onClick={() => onToggle(s.id)}
             isFWC={isFWC}
+            searchQ={searchQ}
           />
         ))}
       </div>

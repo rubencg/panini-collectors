@@ -61,7 +61,11 @@ export const TEAMS = [
   { code: "PAN", name: "Panama",   group: "L", colors: ["#005293", "#ffffff", "#d21034"] },
 ]
 
-export const PEOPLE = ["Bambam", "Nano", "Mangi", "Ruben", "Andres"]
+export function normalize(str) {
+  return str.normalize('NFD').replace(/\p{Mn}/gu, '')
+}
+
+export const PEOPLE = ["Ivan", "Ruy", "Giovanni", "Ruben", "Andres"]
 export const STICKERS_PER_TEAM = 12
 export const FWC_COUNT = 9
 export const FWC_LABELS = [

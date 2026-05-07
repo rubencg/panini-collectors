@@ -6,7 +6,7 @@ export function SearchBar({ value, onChange }) {
       <Icon.Search />
       <input
         type="text"
-        placeholder="Search sticker code · MEX 7, FWC 3, ARG…"
+        placeholder="Search team code or player name · MEX, Messi, Haaland…"
         value={value}
         onChange={e => onChange(e.target.value)}
         autoComplete="off"

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TEAMS, FWC_COUNT, STICKERS_PER_TEAM } from '../data.js'
+import { TEAMS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, normalize } from '../data.js'
 import { Icon } from './Icons.jsx'
 
 function FlagChip({ colors }) {
@@ -61,7 +61,10 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
 
   const matches = (t) => {
     if (!searchQ) return true
-    return t.code.startsWith(searchQ) || t.name.toUpperCase().includes(searchQ)
+    const qNorm = normalize(searchQ)
+    if (t.code.startsWith(searchQ) || normalize(t.name).toUpperCase().includes(qNorm)) return true
+    const labels = TEAM_LABELS[t.code] || []
+    return labels.some(l => normalize(l).toUpperCase().includes(qNorm))
   }
 
   return (
