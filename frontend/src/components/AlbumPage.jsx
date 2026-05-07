@@ -32,7 +32,10 @@ function AlbumSticker({ sticker, count, onClick, isFWC }) {
         </>
       )}
       {isFWC && (
-        <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
+        <>
+          <div className="sticker-name">{sticker.label}</div>
+          <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
+        </>
       )}
       {dupes > 0 && (
         <div className="sticker-dupe-badge mono" title={`${dupes} dupe${dupes === 1 ? '' : 's'} on hand`}>+{dupes}</div>
