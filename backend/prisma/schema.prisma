@@ -18,6 +18,7 @@ model PersonSticker {
   personId  Int
   stickerId String
   count     Int    @default(0)
+  extra     Int    @default(0)
   person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@unique([personId, stickerId])

@@ -20,22 +20,21 @@ function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
 }
 
-function countOf(personData, id) { return (personData && personData[id]) || 0 }
-function dupeCount(personData, id) { return Math.max(0, countOf(personData, id) - 1) }
+function albumOf(personData, id) { return personData?.[id]?.count || 0 }
+function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
-function DupeSticker({ sticker, count, onPlus, onMinus, isFWC, searchQ }) {
+function DupeSticker({ sticker, count, extra, onPlus, onMinus, isFWC, searchQ }) {
   const owned = count >= 1
-  const dupes = Math.max(0, count - 1)
   const isLogo = !isFWC && sticker.num === 0
   return (
-    <div className={`sticker dupe-sticker ${dupes > 0 ? 'has-dupes' : owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''}`}>
+    <div className={`sticker dupe-sticker ${extra > 0 ? 'has-dupes' : owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''}`}>
       <div className="sticker-top">
         <div className="sticker-id">
           <span>{sticker.code}</span>
           <span className="num">{String(sticker.num).padStart(2, '0')}</span>
         </div>
-        {dupes > 0 && (
-          <div className="dupe-pill mono">+{dupes}</div>
+        {extra > 0 && (
+          <div className="dupe-pill mono">+{extra}</div>
         )}
       </div>
       {!isFWC && (
@@ -55,30 +54,26 @@ function DupeSticker({ sticker, count, onPlus, onMinus, isFWC, searchQ }) {
         <button
           className="dupe-btn"
           onClick={onMinus}
-          disabled={dupes === 0}
+          disabled={extra === 0}
           title="Remove a dupe"
         >
           <Icon.Minus />
         </button>
-        <span className={`dupe-count mono ${dupes > 0 ? 'active' : ''}`}>{dupes}</span>
+        <span className={`dupe-count mono ${extra > 0 ? 'active' : ''}`}>{extra}</span>
         <button
           className="dupe-btn primary"
           onClick={onPlus}
-          disabled={!owned}
-          title={owned ? 'Add a dupe' : 'Mark in album first'}
+          title="Add a dupe"
         >
           <Icon.Plus />
         </button>
       </div>
-      {!owned && (
-        <div className="dupe-locked mono">not in album</div>
-      )}
     </div>
   )
 }
 
 export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson, searchQ }) {
-  const totalDupes = stickers.reduce((acc, s) => acc + dupeCount(personData, s.id), 0)
+  const totalDupes = stickers.reduce((acc, s) => acc + extraOf(personData, s.id), 0)
   return (
     <div className="page">
       <div className="page-head">
@@ -107,7 +102,8 @@ export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activeP
           <DupeSticker
             key={s.id}
             sticker={s}
-            count={countOf(personData, s.id)}
+            count={albumOf(personData, s.id)}
+            extra={extraOf(personData, s.id)}
             onPlus={() => onAdjust(s.id, +1)}
             onMinus={() => onAdjust(s.id, -1)}
             isFWC={isFWC}

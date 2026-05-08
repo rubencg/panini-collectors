@@ -10,18 +10,20 @@ import { DupesPage } from './components/DupesPage.jsx'
 import { Trades } from './components/Trades.jsx'
 import { ConfirmModal } from './components/ConfirmModal.jsx'
 
-function countOf(personData, id) { return (personData && personData[id]) || 0 }
-function inAlbum(personData, id) { return countOf(personData, id) >= 1 }
-function dupeCount(personData, id) { return Math.max(0, countOf(personData, id) - 1) }
+// personData shape: { "MEX-0": { count: 1, extra: 0 }, ... }
+// count = 1 means in album; extra = N means N tradeable dupes (independent of album)
+function albumOf(personData, id) { return personData?.[id]?.count || 0 }
+function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
+function inAlbum(personData, id) { return albumOf(personData, id) >= 1 }
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
-async function apiPut(person, stickerId, count) {
+async function apiPut(person, stickerId, fields) {
   try {
     await fetch(`${API_BASE}/api/sticker`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ person, stickerId, count }),
+      body: JSON.stringify({ person, stickerId, ...fields }),
     })
   } catch (e) { console.error('apiPut failed', e) }
 }
@@ -64,14 +66,12 @@ export default function App() {
     const q = search.trim()
     if (!q) return
     const qUp = q.toUpperCase()
-    // Match by team code: MEX, MEX-3, FWC 2, etc.
     const m = qUp.match(/^([A-Z]{3})\s*-?\s*(\d+)?$/)
     if (m) {
       const code = m[1]
       if (code === 'FWC') { setActivePage('FWC'); return }
       if (TEAMS.find(t => t.code === code)) { setActivePage(code); return }
     }
-    // Match by player name (case- and accent-insensitive)
     const qNorm = normalize(q).toUpperCase()
     for (const [code, labels] of Object.entries(TEAM_LABELS)) {
       if (labels.some(l => normalize(l).toUpperCase().includes(qNorm))) {
@@ -83,24 +83,37 @@ export default function App() {
 
   const personData = people[activePerson] || {}
 
-  const adjustCount = useCallback((person, stickerId, delta) => {
+  const toggleAlbum = useCallback((person, stickerId) => {
     setPeople(prev => {
-      const cur = countOf(prev[person], stickerId)
-      const next = Math.max(0, cur + delta)
+      const cur = albumOf(prev[person], stickerId)
+      const existing = prev[person]?.[stickerId] || { count: 0, extra: 0 }
       const updated = { ...prev, [person]: { ...prev[person] } }
-      if (next <= 0) delete updated[person][stickerId]
-      else updated[person][stickerId] = next
-      apiPut(person, stickerId, next)
+      if (cur === 0) {
+        updated[person][stickerId] = { ...existing, count: 1 }
+        apiPut(person, stickerId, { count: 1 })
+      } else {
+        if (existing.extra > 0) {
+          updated[person][stickerId] = { ...existing, count: 0 }
+        } else {
+          delete updated[person][stickerId]
+        }
+        apiPut(person, stickerId, { count: 0 })
+      }
       return updated
     })
   }, [])
 
-  const toggleAlbum = useCallback((person, stickerId) => {
+  const adjustExtra = useCallback((person, stickerId, delta) => {
     setPeople(prev => {
-      const cur = countOf(prev[person], stickerId)
+      const existing = prev[person]?.[stickerId] || { count: 0, extra: 0 }
+      const newExtra = Math.max(0, existing.extra + delta)
       const updated = { ...prev, [person]: { ...prev[person] } }
-      if (cur === 0) { updated[person][stickerId] = 1; apiPut(person, stickerId, 1) }
-      else { delete updated[person][stickerId]; apiPut(person, stickerId, 0) }
+      if (newExtra <= 0 && existing.count <= 0) {
+        delete updated[person][stickerId]
+      } else {
+        updated[person][stickerId] = { ...existing, extra: newExtra }
+      }
+      apiPut(person, stickerId, { extra: newExtra })
       return updated
     })
   }, [])
@@ -110,11 +123,19 @@ export default function App() {
       const updated = { ...prev, [person]: { ...prev[person] } }
       const batch = []
       for (const id of stickerIds) {
-        const cur = updated[person][id] || 0
+        const existing = updated[person][id] || { count: 0, extra: 0 }
         if (owned) {
-          if (cur < 1) { updated[person][id] = 1; batch.push({ id, count: 1 }) }
+          if (existing.count < 1) {
+            updated[person][id] = { ...existing, count: 1 }
+            batch.push({ id, count: 1 })
+          }
         } else {
-          delete updated[person][id]; batch.push({ id, count: 0 })
+          if (existing.extra > 0) {
+            updated[person][id] = { ...existing, count: 0 }
+          } else {
+            delete updated[person][id]
+          }
+          batch.push({ id, count: 0 })
         }
       }
       apiBulk(person, batch)
@@ -128,10 +149,9 @@ export default function App() {
     for (const p of PEOPLE) {
       const data = people[p] || {}
       let album = 0, dupes = 0
-      for (const id of Object.keys(data)) {
-        const c = data[id]
-        if (c >= 1) album++
-        if (c >= 2) dupes += c - 1
+      for (const val of Object.values(data)) {
+        if (val.count >= 1) album++
+        if (val.extra >= 1) dupes += val.extra
       }
       out[p] = { album, dupes }
     }
@@ -149,7 +169,7 @@ export default function App() {
   const activeTeam = TEAMS.find(t => t.code === activePage)
   const isFWC = activePage === 'FWC'
 
-  // Trade matches
+  // Trade matches: giver must have extra >= 1, taker must be missing from album
   const tradeMatches = useMemo(() => {
     const matches = {}
     for (const giver of PEOPLE) {
@@ -159,7 +179,7 @@ export default function App() {
         const takerData = people[taker] || {}
         const list = []
         for (const s of ALL_STICKERS) {
-          if (dupeCount(giverData, s.id) >= 1 && countOf(takerData, s.id) === 0) list.push(s)
+          if (extraOf(giverData, s.id) >= 1 && albumOf(takerData, s.id) === 0) list.push(s)
         }
         if (list.length) matches[`${giver}|${taker}`] = list
       }
@@ -241,7 +261,7 @@ export default function App() {
                 team={activeTeam}
                 stickers={pageStickers}
                 personData={personData}
-                onAdjust={(id, d) => adjustCount(activePerson, id, d)}
+                onAdjust={(id, d) => adjustExtra(activePerson, id, d)}
                 activePerson={activePerson}
                 searchQ={searchQ}
               />

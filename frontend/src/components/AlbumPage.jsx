@@ -20,13 +20,12 @@ function Highlight({ text, query }) {
   </>
 }
 
-function countOf(personData, id) { return (personData && personData[id]) || 0 }
-function inAlbum(personData, id) { return countOf(personData, id) >= 1 }
+function albumOf(personData, id) { return personData?.[id]?.count || 0 }
+function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
-function AlbumSticker({ sticker, count, onClick, isFWC, searchQ }) {
+function AlbumSticker({ sticker, count, extra, onClick, isFWC, searchQ }) {
   const owned = count >= 1
   const isLogo = !isFWC && sticker.num === 0
-  const dupes = Math.max(0, count - 1)
   return (
     <div
       className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''}`}
@@ -53,8 +52,8 @@ function AlbumSticker({ sticker, count, onClick, isFWC, searchQ }) {
           <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
         </>
       )}
-      {dupes > 0 && (
-        <div className="sticker-dupe-badge mono" title={`${dupes} dupe${dupes === 1 ? '' : 's'} on hand`}>+{dupes}</div>
+      {extra > 0 && (
+        <div className="sticker-dupe-badge mono" title={`${extra} dupe${extra === 1 ? '' : 's'} on hand`}>+{extra}</div>
       )}
     </div>
   )
@@ -106,7 +105,8 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkA
           <AlbumSticker
             key={s.id}
             sticker={s}
-            count={countOf(personData, s.id)}
+            count={albumOf(personData, s.id)}
+            extra={extraOf(personData, s.id)}
             onClick={() => onToggle(s.id)}
             isFWC={isFWC}
             searchQ={searchQ}

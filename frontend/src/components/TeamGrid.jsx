@@ -6,11 +6,8 @@ function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
 }
 
-function countOf(personData, id) {
-  return (personData && personData[id]) || 0
-}
-function inAlbum(personData, id) { return countOf(personData, id) >= 1 }
-function dupeCount(personData, id) { return Math.max(0, countOf(personData, id) - 1) }
+function inAlbum(personData, id) { return (personData?.[id]?.count || 0) >= 1 }
+function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
 export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
   const progress = useMemo(() => {
@@ -35,12 +32,12 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
     for (const t of TEAMS) {
       let d = 0
       for (let i = 0; i < STICKERS_PER_TEAM; i++) {
-        d += dupeCount(personData, `${t.code}-${i}`)
+        d += extraOf(personData, `${t.code}-${i}`)
       }
       out[t.code] = d
     }
     let fwcD = 0
-    for (let i = 1; i <= FWC_COUNT; i++) fwcD += dupeCount(personData, `FWC-${i}`)
+    for (let i = 1; i <= FWC_COUNT; i++) fwcD += extraOf(personData, `FWC-${i}`)
     out.FWC = fwcD
     return out
   }, [personData])
