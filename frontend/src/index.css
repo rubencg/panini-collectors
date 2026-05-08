@@ -906,6 +906,22 @@ input { font-family: inherit; }
   color: var(--ink-dim);
 }
 .trade-chip strong { color: var(--mint); font-weight: 600; }
+.toggle-names-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-1);
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.toggle-names-btn:hover { border-color: var(--mint); color: var(--mint); }
+.toggle-names-btn.active { border-color: var(--mint); color: var(--mint); background: color-mix(in srgb, var(--mint) 12%, transparent); }
 
 /* ============ MOST WANTED / EMPTY ============ */
 .empty-state {

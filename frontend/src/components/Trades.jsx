@@ -1,9 +1,22 @@
+import { useState } from 'react'
 import { PEOPLE, ALL_STICKERS } from '../data.js'
 
 function countOf(personData, id) { return (personData && personData[id]) || 0 }
 function dupeCount(personData, id) { return Math.max(0, countOf(personData, id) - 1) }
+function stickerDisplay(it) {
+  const num = String(it.num).padStart(2, '0')
+  if (it.num === 0 || !it.label) return num
+  const parts = it.label.split(' ')
+  return `${num} ${parts[parts.length - 1]}`
+}
 
 export function Trades({ tradeMatches, activePerson }) {
+  const [showNames, setShowNames] = useState(() => localStorage.getItem('trades-show-names') !== 'false')
+  const toggleNames = () => setShowNames(v => {
+    localStorage.setItem('trades-show-names', String(!v))
+    return !v
+  })
+
   const incoming = []
   const outgoing = []
   for (const key of Object.keys(tradeMatches)) {
@@ -31,7 +44,7 @@ export function Trades({ tradeMatches, activePerson }) {
         <div className="trade-stickers">
           {Object.entries(grouped).map(([code, items]) => (
             <span className="trade-chip" key={code}>
-              <strong>{code}</strong> {items.map(it => String(it.num).padStart(2, '0')).join(' · ')}
+              <strong>{code}</strong> {items.map(showNames ? stickerDisplay : it => String(it.num).padStart(2, '0')).join(' · ')}
             </span>
           ))}
         </div>
@@ -45,7 +58,16 @@ export function Trades({ tradeMatches, activePerson }) {
     <div className="trades">
       <div className="trades-head">
         <div>
-          <h2>Trade matches</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ margin: 0 }}>Trade matches</h2>
+            <button
+              className={`toggle-names-btn${showNames ? ' active' : ''}`}
+              onClick={toggleNames}
+              title={showNames ? 'Hide player names' : 'Show player names'}
+            >
+              {showNames ? 'Names on' : 'Names off'}
+            </button>
+          </div>
           <p>Real swaps: someone has a <strong style={{ color: 'var(--mint)' }}>dupe</strong> · the other person is <strong style={{ color: 'var(--mint)' }}>missing</strong> it from their album.</p>
         </div>
       </div>
