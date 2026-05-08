@@ -682,6 +682,9 @@ input { font-family: inherit; }
 .team-tile.has-dupes {
   border-color: rgba(40, 200, 230, 0.35);
 }
+.team-tile.active.has-dupes {
+  border-color: var(--mint);
+}
 
 /* dupes page help */
 .dupes-help {
