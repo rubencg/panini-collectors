@@ -37,6 +37,9 @@ model SwapRequest {
   updatedAt    DateTime          @updatedAt
   completedAt  DateTime?
 
+  fromForOtherAccount Boolean           @default(false)
+  toForOtherAccount   Boolean           @default(false)
+
   fromPerson   Person            @relation("SwapRequestsSent",     fields: [fromPersonId], references: [id], onDelete: Cascade)
   toPerson     Person            @relation("SwapRequestsReceived", fields: [toPersonId],   references: [id], onDelete: Cascade)
   items        SwapRequestItem[]

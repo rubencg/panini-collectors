@@ -80,6 +80,8 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
   const [otherBro, setOtherBro] = useState(initial?.toPerson || null)
   const [fromOffers, setFromOffers] = useState(() => new Set(initial?.fromOffers || []))
   const [toOffers, setToOffers] = useState(() => new Set(initial?.toOffers || []))
+  const [fromForOtherAccount, setFromForOtherAccount] = useState(initial?.fromForOtherAccount || false)
+  const [toForOtherAccount, setToForOtherAccount] = useState(initial?.toForOtherAccount || false)
   const [submitting, setSubmitting] = useState(false)
 
   // When otherBro changes in create mode, reset selections
@@ -133,6 +135,8 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
         toPerson: otherBro,
         fromOffers: [...fromOffers],
         toOffers: [...toOffers],
+        fromForOtherAccount,
+        toForOtherAccount,
       })
     } finally {
       setSubmitting(false)
@@ -176,24 +180,44 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
 
         {/* Buckets */}
         {otherBro && (
-          <div className="swap-modal-buckets">
-            <BucketPanel
-              label={`${activePerson} offers`}
-              candidates={fromCandidates}
-              staleIds={staleFromIds}
-              selected={fromOffers}
-              onToggle={toggleFrom}
-              countLabel={`${fromOffers.size} / ${fromCandidates.length + staleFromIds.length}`}
-            />
-            <BucketPanel
-              label={`${otherBro} offers`}
-              candidates={toCandidates}
-              staleIds={staleToIds}
-              selected={toOffers}
-              onToggle={toggleTo}
-              countLabel={`${toOffers.size} / ${toCandidates.length + staleToIds.length}`}
-            />
-          </div>
+          <>
+            <div className="swap-modal-buckets">
+              <BucketPanel
+                label={`${activePerson} offers`}
+                candidates={fromCandidates}
+                staleIds={staleFromIds}
+                selected={fromOffers}
+                onToggle={toggleFrom}
+                countLabel={`${fromOffers.size} / ${fromCandidates.length + staleFromIds.length}`}
+              />
+              <BucketPanel
+                label={`${otherBro} offers`}
+                candidates={toCandidates}
+                staleIds={staleToIds}
+                selected={toOffers}
+                onToggle={toggleTo}
+                countLabel={`${toOffers.size} / ${toCandidates.length + staleToIds.length}`}
+              />
+            </div>
+            <div className="swap-modal-other-acct-row">
+              <label className="swap-modal-other-acct-check">
+                <input
+                  type="checkbox"
+                  checked={toForOtherAccount}
+                  onChange={e => setToForOtherAccount(e.target.checked)}
+                />
+                <span>&#8594; {otherBro}&apos;s 2nd account</span>
+              </label>
+              <label className="swap-modal-other-acct-check">
+                <input
+                  type="checkbox"
+                  checked={fromForOtherAccount}
+                  onChange={e => setFromForOtherAccount(e.target.checked)}
+                />
+                <span>&#8594; {activePerson}&apos;s 2nd account</span>
+              </label>
+            </div>
+          </>
         )}
 
         {/* Footer */}

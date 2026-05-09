@@ -20,6 +20,8 @@ function formatSwapRequest(sr) {
     status: sr.status,
     fromOffers: sr.items.filter(i => i.direction === 'from_offers').map(i => i.stickerId),
     toOffers: sr.items.filter(i => i.direction === 'to_offers').map(i => i.stickerId),
+    fromForOtherAccount: sr.fromForOtherAccount,
+    toForOtherAccount: sr.toForOtherAccount,
     createdAt: sr.createdAt,
     updatedAt: sr.updatedAt,
   }
@@ -49,7 +51,7 @@ router.get('/swap-requests', async (req, res) => {
 // ─── POST /api/swap-requests ──────────────────────────────────────────────────
 
 router.post('/swap-requests', async (req, res) => {
-  const { fromPerson: fromName, toPerson: toName, fromOffers = [], toOffers = [] } = req.body
+  const { fromPerson: fromName, toPerson: toName, fromOffers = [], toOffers = [], fromForOtherAccount = false, toForOtherAccount = false } = req.body
 
   if (!fromName || !toName) {
     return res.status(400).json({ error: 'fromPerson and toPerson are required' })
@@ -77,6 +79,8 @@ router.post('/swap-requests', async (req, res) => {
         data: {
           fromPersonId: fromPerson.id,
           toPersonId: toPerson.id,
+          fromForOtherAccount,
+          toForOtherAccount,
           items: {
             createMany: {
               data: [
@@ -104,7 +108,7 @@ router.put('/swap-requests/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10)
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' })
 
-  const { fromPerson: fromName, toPerson: toName, fromOffers = [], toOffers = [] } = req.body
+  const { fromPerson: fromName, toPerson: toName, fromOffers = [], toOffers = [], fromForOtherAccount = false, toForOtherAccount = false } = req.body
 
   if (!fromName || !toName) {
     return res.status(400).json({ error: 'fromPerson and toPerson are required' })
@@ -140,6 +144,8 @@ router.put('/swap-requests/:id', async (req, res) => {
         data: {
           fromPersonId: fromPerson.id,
           toPersonId: toPerson.id,
+          fromForOtherAccount,
+          toForOtherAccount,
           updatedAt: new Date(),
           items: {
             createMany: {
@@ -186,8 +192,10 @@ router.post('/swap-requests/:id/complete', async (req, res) => {
       const fromOffers = sr.items.filter(i => i.direction === 'from_offers').map(i => i.stickerId)
       const toOffers   = sr.items.filter(i => i.direction === 'to_offers').map(i => i.stickerId)
 
-      // Apply one side of the swap: giver loses 1 extra (clamped at 0), taker gains count=1
-      const apply = async (giverId, takerId, stickerIds) => {
+      // Apply one side of the swap: giver loses 1 extra (clamped at 0), taker gains sticker
+      // takerUsesOtherAccount=true  → mark inOtherAccount on taker, leave count at 0
+      // takerUsesOtherAccount=false → set count=1, inOtherAccount=false on taker
+      const apply = async (giverId, takerId, stickerIds, takerUsesOtherAccount) => {
         for (const stickerId of stickerIds) {
           const g = await tx.personSticker.findUnique({
             where: { personId_stickerId: { personId: giverId, stickerId } },
@@ -210,23 +218,31 @@ router.post('/swap-requests/:id/complete', async (req, res) => {
               })
             }
           }
-          // Taker: ensure count=1 in their album (preserve any existing extra)
+          // Taker: place sticker in album or 2nd account
           const t = await tx.personSticker.findUnique({
             where: { personId_stickerId: { personId: takerId, stickerId } },
           })
-          if (t?.count >= 1) {
+          if (!takerUsesOtherAccount && t?.count >= 1) {
             warnings.push(`${stickerId}: taker already owned this sticker`)
           }
-          await tx.personSticker.upsert({
-            where: { personId_stickerId: { personId: takerId, stickerId } },
-            update: { count: 1 },
-            create: { personId: takerId, stickerId, count: 1, extra: 0 },
-          })
+          if (takerUsesOtherAccount) {
+            await tx.personSticker.upsert({
+              where: { personId_stickerId: { personId: takerId, stickerId } },
+              update: { inOtherAccount: true },
+              create: { personId: takerId, stickerId, count: 0, extra: 0, inOtherAccount: true },
+            })
+          } else {
+            await tx.personSticker.upsert({
+              where: { personId_stickerId: { personId: takerId, stickerId } },
+              update: { count: 1, inOtherAccount: false },
+              create: { personId: takerId, stickerId, count: 1, extra: 0, inOtherAccount: false },
+            })
+          }
         }
       }
 
-      await apply(sr.fromPersonId, sr.toPersonId, fromOffers)
-      await apply(sr.toPersonId,   sr.fromPersonId, toOffers)
+      await apply(sr.fromPersonId, sr.toPersonId,   fromOffers, sr.toForOtherAccount)
+      await apply(sr.toPersonId,   sr.fromPersonId, toOffers,   sr.fromForOtherAccount)
 
       // Delete-on-complete per README §6.1
       await tx.swapRequest.delete({ where: { id } })
