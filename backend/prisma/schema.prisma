@@ -16,12 +16,13 @@ model Person {
 }
 
 model PersonSticker {
-  id        Int    @id @default(autoincrement())
-  personId  Int
-  stickerId String
-  count     Int    @default(0)
-  extra     Int    @default(0)
-  person    Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  id             Int     @id @default(autoincrement())
+  personId       Int
+  stickerId      String
+  count          Int     @default(0)
+  extra          Int     @default(0)
+  inOtherAccount Boolean @default(false)
+  person         Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
 
   @@unique([personId, stickerId])
   @@index([personId])

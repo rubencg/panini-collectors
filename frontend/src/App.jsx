@@ -8,14 +8,17 @@ import { TeamGrid } from './components/TeamGrid.jsx'
 import { AlbumPage } from './components/AlbumPage.jsx'
 import { DupesPage } from './components/DupesPage.jsx'
 import { Trades } from './components/Trades.jsx'
+import { InOtherAccount } from './components/InOtherAccount.jsx'
 import { SwapRequests } from './components/SwapRequests.jsx'
 import { SwapRequestModal } from './components/SwapRequestModal.jsx'
 import { ConfirmModal } from './components/ConfirmModal.jsx'
 
-// personData shape: { "MEX-0": { count: 1, extra: 0 }, ... }
+// personData shape: { "MEX-0": { count: 1, extra: 0, inOtherAccount: false }, ... }
 // count = 1 means in album; extra = N means N tradeable dupes (independent of album)
+// inOtherAccount = true means sticker is held in a secondary account, not a trade candidate
 function albumOf(personData, id) { return personData?.[id]?.count || 0 }
 function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
+function inOtherAccountOf(personData, id) { return personData?.[id]?.inOtherAccount || false }
 function inAlbum(personData, id) { return albumOf(personData, id) >= 1 }
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -106,19 +109,35 @@ export default function App() {
   const toggleAlbum = useCallback((person, stickerId) => {
     setPeople(prev => {
       const cur = albumOf(prev[person], stickerId)
-      const existing = prev[person]?.[stickerId] || { count: 0, extra: 0 }
+      const existing = prev[person]?.[stickerId] || { count: 0, extra: 0, inOtherAccount: false }
       const updated = { ...prev, [person]: { ...prev[person] } }
       if (cur === 0) {
-        updated[person][stickerId] = { ...existing, count: 1 }
-        apiPut(person, stickerId, { count: 1 })
+        // Completing a sticker also clears inOtherAccount
+        updated[person][stickerId] = { ...existing, count: 1, inOtherAccount: false }
+        apiPut(person, stickerId, { count: 1, inOtherAccount: false })
       } else {
-        if (existing.extra > 0) {
+        if (existing.extra > 0 || existing.inOtherAccount) {
           updated[person][stickerId] = { ...existing, count: 0 }
         } else {
           delete updated[person][stickerId]
         }
         apiPut(person, stickerId, { count: 0 })
       }
+      return updated
+    })
+  }, [])
+
+  const toggleInOtherAccount = useCallback((person, stickerId) => {
+    setPeople(prev => {
+      const existing = prev[person]?.[stickerId] || { count: 0, extra: 0, inOtherAccount: false }
+      const newValue = !existing.inOtherAccount
+      const updated = { ...prev, [person]: { ...prev[person] } }
+      if (!newValue && existing.count <= 0 && existing.extra <= 0) {
+        delete updated[person][stickerId]
+      } else {
+        updated[person][stickerId] = { ...existing, inOtherAccount: newValue }
+      }
+      apiPut(person, stickerId, { inOtherAccount: newValue })
       return updated
     })
   }, [])
@@ -190,6 +209,7 @@ export default function App() {
   const isFWC = activePage === 'FWC'
 
   // Trade matches: giver must have extra >= 1, taker must be missing from album
+  // Stickers marked inOtherAccount for the taker are excluded — they won't trade those
   const tradeMatches = useMemo(() => {
     const matches = {}
     for (const giver of PEOPLE) {
@@ -199,7 +219,13 @@ export default function App() {
         const takerData = people[taker] || {}
         const list = []
         for (const s of ALL_STICKERS) {
-          if (extraOf(giverData, s.id) >= 1 && albumOf(takerData, s.id) === 0) list.push(s)
+          if (
+            extraOf(giverData, s.id) >= 1 &&
+            albumOf(takerData, s.id) === 0 &&
+            !inOtherAccountOf(takerData, s.id)
+          ) {
+            list.push(s)
+          }
         }
         if (list.length) matches[`${giver}|${taker}`] = list
       }
@@ -214,6 +240,18 @@ export default function App() {
   )
 
   const stats = personStats[activePerson] || { album: 0, dupes: 0 }
+  const inOtherAccountCount = useMemo(() => {
+    const data = people[activePerson] || {}
+    return Object.values(data).filter(v => v.inOtherAccount).length
+  }, [people, activePerson])
+
+  // If the other-account tab becomes empty (last sticker was un-flagged), fall back to album
+  useEffect(() => {
+    if (activeView === 'other-account' && inOtherAccountCount === 0) {
+      setActiveView('album')
+    }
+  }, [activeView, inOtherAccountCount])
+
   const searchQ = search.trim().toUpperCase()
 
   const handleMarkPage = (mode) => {
@@ -300,6 +338,7 @@ export default function App() {
         albumCount={stats.album}
         dupesCount={stats.dupes}
         swapCount={swapRequestsForActive.length}
+        inOtherAccountCount={inOtherAccountCount}
       />
 
       {(activeView === 'album' || activeView === 'dupes') && (
@@ -320,6 +359,7 @@ export default function App() {
                 stickers={pageStickers}
                 personData={personData}
                 onToggle={(id) => toggleAlbum(activePerson, id)}
+                onToggleOtherAccount={(id) => toggleInOtherAccount(activePerson, id)}
                 onMarkAll={() => handleMarkPage('all')}
                 onUnmarkAll={() => handleMarkPage('none')}
                 count={pageCount}
@@ -345,6 +385,10 @@ export default function App() {
 
       {activeView === 'trades' && (
         <Trades tradeMatches={tradeMatches} activePerson={activePerson} />
+      )}
+
+      {activeView === 'other-account' && (
+        <InOtherAccount personData={personData} activePerson={activePerson} />
       )}
 
       {activeView === 'swap-requests' && (

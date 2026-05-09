@@ -1,6 +1,8 @@
 import { Icon } from './Icons.jsx'
 import { normalize } from '../data.js'
 
+function inOtherAccountOf(personData, id) { return personData?.[id]?.inOtherAccount || false }
+
 function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
 }
@@ -23,12 +25,12 @@ function Highlight({ text, query }) {
 function albumOf(personData, id) { return personData?.[id]?.count || 0 }
 function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
-function AlbumSticker({ sticker, count, extra, onClick, isFWC, searchQ }) {
+function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggleOtherAccount, isFWC, searchQ }) {
   const owned = count >= 1
   const isLogo = !isFWC && sticker.num === 0
   return (
     <div
-      className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''}`}
+      className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''} ${!owned && inOtherAccount ? 'in-other-account' : ''}`}
       onClick={onClick}
     >
       <div className="sticker-top">
@@ -36,8 +38,19 @@ function AlbumSticker({ sticker, count, extra, onClick, isFWC, searchQ }) {
           <span>{sticker.code}</span>
           <span className="num">{String(sticker.num).padStart(2, '0')}</span>
         </div>
-        <div className="sticker-state">
-          {owned && <Icon.Check />}
+        <div className="sticker-top-right">
+          <div className="sticker-state">
+            {owned && <Icon.Check />}
+          </div>
+          {!owned && (
+            <button
+              className={`sticker-other-acct-btn${inOtherAccount ? ' active' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onToggleOtherAccount() }}
+              title={inOtherAccount ? 'In another account — click to remove' : 'Mark as in another account'}
+            >
+              {inOtherAccount ? '2nd acct ✓' : '2nd acct'}
+            </button>
+          )}
         </div>
       </div>
       {!isFWC && (
@@ -59,7 +72,7 @@ function AlbumSticker({ sticker, count, extra, onClick, isFWC, searchQ }) {
   )
 }
 
-export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ }) {
+export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggleOtherAccount, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ }) {
   const allOwned = ownedCount === count
   const noneOwned = ownedCount === 0
   return (
@@ -107,7 +120,9 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onMarkA
             sticker={s}
             count={albumOf(personData, s.id)}
             extra={extraOf(personData, s.id)}
+            inOtherAccount={inOtherAccountOf(personData, s.id)}
             onClick={() => onToggle(s.id)}
+            onToggleOtherAccount={() => onToggleOtherAccount(s.id)}
             isFWC={isFWC}
             searchQ={searchQ}
           />

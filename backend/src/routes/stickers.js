@@ -1,7 +1,7 @@
 // PUT /api/sticker
-// Body: { person, stickerId, count?, extra? }
+// Body: { person, stickerId, count?, extra?, inOtherAccount? }
 // Partial update — only provided fields are changed.
-// Record is deleted when both count and extra drop to 0.
+// Record is deleted when count, extra, and inOtherAccount are all zero/false.
 
 // POST /api/stickers/bulk
 // Body: { person, stickers: [{ id, count }] }
@@ -14,9 +14,9 @@ import { prisma } from '../index.js'
 const router = Router()
 
 router.put('/sticker', async (req, res) => {
-  const { person: personName, stickerId, count, extra } = req.body
-  if (!personName || !stickerId || (count === undefined && extra === undefined)) {
-    return res.status(400).json({ error: 'person, stickerId, and count or extra required' })
+  const { person: personName, stickerId, count, extra, inOtherAccount } = req.body
+  if (!personName || !stickerId || (count === undefined && extra === undefined && inOtherAccount === undefined)) {
+    return res.status(400).json({ error: 'person, stickerId, and at least one of count, extra, or inOtherAccount required' })
   }
   const person = await prisma.person.findUnique({ where: { name: personName } })
   if (!person) return res.status(404).json({ error: 'Person not found' })
@@ -26,14 +26,15 @@ router.put('/sticker', async (req, res) => {
   })
   const newCount = count !== undefined ? Math.max(0, count) : (existing?.count ?? 0)
   const newExtra = extra !== undefined ? Math.max(0, extra) : (existing?.extra ?? 0)
+  const newInOtherAccount = inOtherAccount !== undefined ? Boolean(inOtherAccount) : (existing?.inOtherAccount ?? false)
 
-  if (newCount <= 0 && newExtra <= 0) {
+  if (newCount <= 0 && newExtra <= 0 && !newInOtherAccount) {
     await prisma.personSticker.deleteMany({ where: { personId: person.id, stickerId } })
   } else {
     await prisma.personSticker.upsert({
       where: { personId_stickerId: { personId: person.id, stickerId } },
-      update: { count: newCount, extra: newExtra },
-      create: { personId: person.id, stickerId, count: newCount, extra: newExtra }
+      update: { count: newCount, extra: newExtra, inOtherAccount: newInOtherAccount },
+      create: { personId: person.id, stickerId, count: newCount, extra: newExtra, inOtherAccount: newInOtherAccount }
     })
   }
   res.json({ ok: true })
