@@ -923,6 +923,347 @@ input { font-family: inherit; }
 .toggle-names-btn:hover { border-color: var(--mint); color: var(--mint); }
 .toggle-names-btn.active { border-color: var(--mint); color: var(--mint); background: color-mix(in srgb, var(--mint) 12%, transparent); }
 
+/* ============ SWAP REQUESTS — TAB BADGE ============ */
+.swap-tab-badge {
+  background: color-mix(in srgb, var(--mint) 18%, transparent);
+  border-color: color-mix(in srgb, var(--mint) 45%, transparent);
+  color: var(--mint);
+}
+
+/* ============ SWAP REQUESTS — LIST VIEW ============ */
+.swap-list-wrap {
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  border-radius: 14px;
+  padding: 22px;
+}
+.swap-list-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.swap-list-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.swap-list-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.swap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ============ SWAP REQUEST CARD ============ */
+.swap-card {
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  border-radius: 12px;
+  padding: 16px;
+}
+.swap-card--completed {
+  opacity: 0.65;
+}
+.swap-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.swap-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+.swap-card-person {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.swap-arrow {
+  color: var(--mint);
+  font-size: 16px;
+  font-weight: 400;
+}
+.swap-you-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--mint) 20%, transparent);
+  color: var(--mint);
+  border: 1px solid color-mix(in srgb, var(--mint) 50%, transparent);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.swap-status-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.swap-status-badge--pending {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+}
+.swap-status-badge--completed {
+  color: var(--mint);
+  border-color: color-mix(in srgb, var(--mint) 45%, transparent);
+  background: color-mix(in srgb, var(--mint) 10%, transparent);
+}
+.swap-card-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 560px) {
+  .swap-card-cols { grid-template-columns: 1fr; gap: 10px; }
+}
+.swap-col {}
+.swap-col-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+.swap-col-count {
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: auto;
+}
+.swap-col-empty {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.swap-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.swap-btn-complete {
+  min-width: 90px;
+  justify-content: center;
+}
+
+/* ============ SWAP REQUEST MODAL ============ */
+.swap-modal {
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 0;
+  width: min(680px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.swap-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.swap-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.swap-modal-close {
+  background: transparent;
+  border: 0;
+  color: var(--ink-dim);
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.swap-modal-close:hover { color: var(--ink); background: var(--bg-2); }
+.swap-modal-section {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--line);
+}
+.swap-modal-section-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 10px;
+}
+.swap-modal-locked-bro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink);
+}
+.swap-modal-bro-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.swap-modal-bro-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  color: var(--ink-dim);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.swap-modal-bro-btn:hover { color: var(--ink); border-color: var(--mint-deep); background: var(--bg-3); }
+.swap-modal-bro-btn.active {
+  border-color: var(--mint);
+  background: color-mix(in srgb, var(--mint) 12%, transparent);
+  color: var(--mint);
+}
+.swap-modal-buckets {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 520px) {
+  .swap-modal-buckets { grid-template-columns: 1fr; }
+}
+.swap-modal-bucket {
+  padding: 16px 22px;
+}
+.swap-modal-bucket + .swap-modal-bucket {
+  border-left: 1px solid var(--line);
+}
+@media (max-width: 520px) {
+  .swap-modal-bucket + .swap-modal-bucket {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+.swap-modal-bucket-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.swap-modal-bucket-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.swap-modal-bucket-count {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+.swap-modal-bucket-empty {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  padding: 20px 0;
+  text-align: center;
+}
+.swap-modal-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.swap-modal-chip-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.swap-modal-chip-code {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--mint);
+  letter-spacing: 0.08em;
+  min-width: 32px;
+}
+/* Clickable chip inside the modal */
+.swap-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.swap-chip:hover { border-color: var(--mint-deep); color: var(--ink); }
+.swap-chip--selected {
+  background: color-mix(in srgb, var(--mint) 18%, transparent);
+  border-color: var(--mint);
+  color: var(--mint);
+}
+.swap-chip--stale {
+  border-color: color-mix(in srgb, var(--warn) 60%, transparent);
+  color: var(--warn);
+}
+.swap-chip--stale.swap-chip--selected {
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+}
+.swap-chip strong { color: inherit; font-weight: 600; }
+.swap-modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 14px 22px;
+}
+.swap-modal-footer .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============ MOBILE: swap list ============ */
+@media (max-width: 640px) {
+  .swap-list-wrap { padding: 14px 12px; border-radius: 12px; }
+  .swap-list-head { padding-bottom: 12px; margin-bottom: 12px; flex-direction: column; gap: 10px; }
+  .swap-list-head > .btn { width: 100%; justify-content: center; }
+  .swap-list-title { font-size: 18px; }
+  .swap-card { padding: 12px; border-radius: 10px; }
+  .swap-card-actions .btn { padding: 9px 12px; font-size: 12px; }
+  .swap-modal-header { padding: 16px 16px 14px; }
+  .swap-modal-section { padding: 14px 16px; }
+  .swap-modal-bucket { padding: 14px 16px; }
+  .swap-modal-footer { padding: 12px 16px; }
+}
+
 /* ============ MOST WANTED / EMPTY ============ */
 .empty-state {
   text-align: center;

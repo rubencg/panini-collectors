@@ -1,4 +1,45 @@
-export function ConfirmModal({ kind, person, page, onCancel, onConfirm }) {
+export function ConfirmModal({ kind, person, page, swap, onCancel, onConfirm }) {
+  if (kind === 'delete-swap') {
+    return (
+      <div className="modal-bg" onClick={onCancel}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <h3>Delete swap request?</h3>
+          <p>
+            This will permanently delete the swap request between{' '}
+            <strong>{swap?.fromPerson}</strong> and <strong>{swap?.toPerson}</strong>.
+            This action cannot be undone.
+          </p>
+          <div className="modal-actions">
+            <button className="btn ghost" onClick={onCancel}>Cancel</button>
+            <button className="btn danger" onClick={onConfirm}>Yes, delete</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (kind === 'complete-swap') {
+    return (
+      <div className="modal-bg" onClick={onCancel}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <h3>Complete swap?</h3>
+          <p>
+            Complete the swap between <strong>{swap?.fromPerson}</strong> and{' '}
+            <strong>{swap?.toPerson}</strong>?
+          </p>
+          <p>
+            This marks the offered stickers as owned in each album and removes the
+            corresponding dupes. This action cannot be undone.
+          </p>
+          <div className="modal-actions">
+            <button className="btn ghost" onClick={onCancel}>Cancel</button>
+            <button className="btn primary" onClick={onConfirm}>Yes, complete swap</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const isMark = kind === 'mark-all'
   return (
     <div className="modal-bg" onClick={onCancel}>

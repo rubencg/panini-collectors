@@ -7,11 +7,11 @@ node_modules/
 .env.*.local
 
 # ── Prisma ────────────────────────────────────────────────────
-app/backend/generated/
+backend/generated/
 
 # ── Vite / React build ────────────────────────────────────────
-app/frontend/dist/
-app/frontend/.vite/
+frontend/dist/
+frontend/.vite/
 
 # ── OS / editor ───────────────────────────────────────────────
 .DS_Store

@@ -8,6 +8,8 @@ import { TeamGrid } from './components/TeamGrid.jsx'
 import { AlbumPage } from './components/AlbumPage.jsx'
 import { DupesPage } from './components/DupesPage.jsx'
 import { Trades } from './components/Trades.jsx'
+import { SwapRequests } from './components/SwapRequests.jsx'
+import { SwapRequestModal } from './components/SwapRequestModal.jsx'
 import { ConfirmModal } from './components/ConfirmModal.jsx'
 
 // personData shape: { "MEX-0": { count: 1, extra: 0 }, ... }
@@ -47,6 +49,10 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [confirm, setConfirm] = useState(null)
 
+  // Swap requests state
+  const [swapRequests, setSwapRequests] = useState([])
+  const [swapModal, setSwapModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
+
   useEffect(() => {
     fetch(`${API_BASE}/api/state`)
       .then(r => r.json())
@@ -59,6 +65,20 @@ export default function App() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/swap-requests`)
+      .then(r => r.json())
+      .then(setSwapRequests)
+      .catch(() => {})
+  }, [])
+
+  const refreshSwaps = useCallback(async () => {
+    try {
+      const r = await fetch(`${API_BASE}/api/swap-requests`)
+      setSwapRequests(await r.json())
+    } catch (e) { console.error('refreshSwaps failed', e) }
   }, [])
 
   // Jump to team when search matches a code or player name
@@ -187,6 +207,12 @@ export default function App() {
     return matches
   }, [people])
 
+  // Swap requests filtered by active person
+  const swapRequestsForActive = useMemo(
+    () => swapRequests.filter(s => s.fromPerson === activePerson || s.toPerson === activePerson),
+    [swapRequests, activePerson]
+  )
+
   const stats = personStats[activePerson] || { album: 0, dupes: 0 }
   const searchQ = search.trim().toUpperCase()
 
@@ -199,6 +225,52 @@ export default function App() {
       },
     })
   }
+
+  // Swap request helpers
+  const createSwap = async (payload) => {
+    const r = await fetch(`${API_BASE}/api/swap-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const created = await r.json()
+    setSwapRequests(prev => [created, ...prev])
+  }
+
+  const updateSwap = async (id, payload) => {
+    const r = await fetch(`${API_BASE}/api/swap-requests/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const updated = await r.json()
+    setSwapRequests(prev => prev.map(s => s.id === id ? updated : s))
+  }
+
+  const deleteSwap = useCallback(async (id) => {
+    await fetch(`${API_BASE}/api/swap-requests/${id}`, { method: 'DELETE' })
+    setSwapRequests(prev => prev.filter(s => s.id !== id))
+  }, [])
+
+  const completeSwap = useCallback(async (id) => {
+    const r = await fetch(`${API_BASE}/api/swap-requests/${id}/complete`, { method: 'POST' })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}))
+      alert(`Could not complete swap: ${err.error || r.status}`)
+      return
+    }
+    // Re-fetch state because both bros' counts/extras changed.
+    const [stateRes, swapsRes] = await Promise.all([
+      fetch(`${API_BASE}/api/state`).then(res => res.json()),
+      fetch(`${API_BASE}/api/swap-requests`).then(res => res.json()),
+    ])
+    setPeople(prev => {
+      const next = { ...prev }
+      for (const p of PEOPLE) next[p] = stateRes[p] || {}
+      return next
+    })
+    setSwapRequests(swapsRes)
+  }, [])
 
   if (loading) {
     return (
@@ -227,6 +299,7 @@ export default function App() {
         setActiveView={(v) => { setActiveView(v); setSearch('') }}
         albumCount={stats.album}
         dupesCount={stats.dupes}
+        swapCount={swapRequestsForActive.length}
       />
 
       {(activeView === 'album' || activeView === 'dupes') && (
@@ -274,6 +347,25 @@ export default function App() {
         <Trades tradeMatches={tradeMatches} activePerson={activePerson} />
       )}
 
+      {activeView === 'swap-requests' && (
+        <SwapRequests
+          requests={swapRequestsForActive}
+          activePerson={activePerson}
+          onNew={() => setSwapModal({ mode: 'create' })}
+          onEdit={(id) => setSwapModal({ mode: 'edit', id })}
+          onDelete={(id) => setConfirm({
+            kind: 'delete-swap',
+            swap: swapRequests.find(s => s.id === id),
+            action: async () => { await deleteSwap(id); setConfirm(null) },
+          })}
+          onComplete={(swap) => setConfirm({
+            kind: 'complete-swap',
+            swap,
+            action: async () => { await completeSwap(swap.id); setConfirm(null) },
+          })}
+        />
+      )}
+
       <div className="footer">// COLLECTION TRACKER · WC26 EDITION</div>
 
       {confirm && (
@@ -281,8 +373,24 @@ export default function App() {
           kind={confirm.kind}
           person={activePerson}
           page={isFWC ? 'FWC' : activeTeam?.name}
+          swap={confirm.swap}
           onCancel={() => setConfirm(null)}
           onConfirm={confirm.action}
+        />
+      )}
+
+      {swapModal && (
+        <SwapRequestModal
+          mode={swapModal.mode}
+          initial={swapModal.mode === 'edit' ? swapRequests.find(s => s.id === swapModal.id) : null}
+          activePerson={activePerson}
+          tradeMatches={tradeMatches}
+          onCancel={() => setSwapModal(null)}
+          onSubmit={async (payload) => {
+            if (swapModal.mode === 'create') await createSwap(payload)
+            else await updateSwap(swapModal.id, payload)
+            setSwapModal(null)
+          }}
         />
       )}
     </div>

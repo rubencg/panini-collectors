@@ -8,9 +8,11 @@ datasource db {
 }
 
 model Person {
-  id       Int             @id @default(autoincrement())
-  name     String          @unique
-  stickers PersonSticker[]
+  id                   Int               @id @default(autoincrement())
+  name                 String            @unique
+  stickers             PersonSticker[]
+  swapRequestsSent     SwapRequest[]     @relation("SwapRequestsSent")
+  swapRequestsReceived SwapRequest[]     @relation("SwapRequestsReceived")
 }
 
 model PersonSticker {
@@ -23,4 +25,32 @@ model PersonSticker {
 
   @@unique([personId, stickerId])
   @@index([personId])
+}
+
+model SwapRequest {
+  id           Int               @id @default(autoincrement())
+  fromPersonId Int
+  toPersonId   Int
+  status       String            @default("pending")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  completedAt  DateTime?
+
+  fromPerson   Person            @relation("SwapRequestsSent",     fields: [fromPersonId], references: [id], onDelete: Cascade)
+  toPerson     Person            @relation("SwapRequestsReceived", fields: [toPersonId],   references: [id], onDelete: Cascade)
+  items        SwapRequestItem[]
+
+  @@index([fromPersonId])
+  @@index([toPersonId])
+}
+
+model SwapRequestItem {
+  id            Int         @id @default(autoincrement())
+  swapRequestId Int
+  stickerId     String
+  direction     String      // "from_offers" | "to_offers"
+
+  swapRequest   SwapRequest @relation(fields: [swapRequestId], references: [id], onDelete: Cascade)
+
+  @@index([swapRequestId])
 }

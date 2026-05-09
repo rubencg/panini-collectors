@@ -158,3 +158,14 @@ export function buildAllStickers() {
 
 export const ALL_STICKERS = buildAllStickers()
 export const TOTAL_STICKERS = ALL_STICKERS.length
+export const STICKER_BY_ID = Object.fromEntries(ALL_STICKERS.map(s => [s.id, s]))
+
+// "MEX-3" -> "03 Lozano" ; falls back to padded number if no label.
+export function stickerLabelFromId(id) {
+  const s = STICKER_BY_ID[id]
+  if (!s) return id
+  const num = String(s.num).padStart(2, '0')
+  if (s.num === 0 || !s.label) return num
+  const parts = s.label.split(' ')
+  return `${num} ${parts[parts.length - 1]}`
+}
