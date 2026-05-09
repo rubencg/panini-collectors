@@ -77,11 +77,14 @@ function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLab
 export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, onCancel, onSubmit }) {
   const otherPeople = PEOPLE.filter(p => p !== activePerson)
 
-  const [otherBro, setOtherBro] = useState(initial?.toPerson || null)
-  const [fromOffers, setFromOffers] = useState(() => new Set(initial?.fromOffers || []))
-  const [toOffers, setToOffers] = useState(() => new Set(initial?.toOffers || []))
-  const [fromForOtherAccount, setFromForOtherAccount] = useState(initial?.fromForOtherAccount || false)
-  const [toForOtherAccount, setToForOtherAccount] = useState(initial?.toForOtherAccount || false)
+  // When activePerson is the toPerson (swap was created by the other side), flip perspective
+  const flipped = !!initial && initial.toPerson === activePerson
+
+  const [otherBro, setOtherBro] = useState(flipped ? initial.fromPerson : (initial?.toPerson || null))
+  const [fromOffers, setFromOffers] = useState(() => new Set(flipped ? initial.toOffers : (initial?.fromOffers || [])))
+  const [toOffers, setToOffers] = useState(() => new Set(flipped ? initial.fromOffers : (initial?.toOffers || [])))
+  const [fromForOtherAccount, setFromForOtherAccount] = useState(flipped ? (initial?.toForOtherAccount || false) : (initial?.fromForOtherAccount || false))
+  const [toForOtherAccount, setToForOtherAccount] = useState(flipped ? (initial?.fromForOtherAccount || false) : (initial?.toForOtherAccount || false))
   const [submitting, setSubmitting] = useState(false)
 
   // When otherBro changes in create mode, reset selections

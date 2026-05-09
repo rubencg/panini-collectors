@@ -78,7 +78,7 @@ export function SwapRequestCard({ swap, activePerson, onEdit, onDelete, onComple
           <div className="swap-col-label">
             <span className="badge mono">{fromPerson.slice(0, 2).toUpperCase()}</span>
             <span>{fromPerson} offers</span>
-            {toForOtherAccount && <span className="swap-other-acct-badge">2nd acct</span>}
+            {fromForOtherAccount && <span className="swap-other-acct-badge">2nd acct</span>}
             <span className="swap-col-count mono">({fromOffers.length})</span>
           </div>
           {fromOffers.length > 0
@@ -90,7 +90,7 @@ export function SwapRequestCard({ swap, activePerson, onEdit, onDelete, onComple
           <div className="swap-col-label">
             <span className="badge mono">{toPerson.slice(0, 2).toUpperCase()}</span>
             <span>{toPerson} offers</span>
-            {fromForOtherAccount && <span className="swap-other-acct-badge">2nd acct</span>}
+            {toForOtherAccount && <span className="swap-other-acct-badge">2nd acct</span>}
             <span className="swap-col-count mono">({toOffers.length})</span>
           </div>
           {toOffers.length > 0
