@@ -208,7 +208,23 @@ export default function App() {
   const activeTeam = TEAMS.find(t => t.code === activePage)
   const isFWC = activePage === 'FWC'
 
-  // Trade matches: giver must have extra >= 1, taker must be missing from album
+  // How many extras each person has committed to pending swap requests
+  const committedExtras = useMemo(() => {
+    const map = {}
+    for (const sr of swapRequests) {
+      for (const sid of sr.fromOffers) {
+        if (!map[sr.fromPerson]) map[sr.fromPerson] = {}
+        map[sr.fromPerson][sid] = (map[sr.fromPerson][sid] || 0) + 1
+      }
+      for (const sid of sr.toOffers) {
+        if (!map[sr.toPerson]) map[sr.toPerson] = {}
+        map[sr.toPerson][sid] = (map[sr.toPerson][sid] || 0) + 1
+      }
+    }
+    return map
+  }, [swapRequests])
+
+  // Trade matches: giver must have uncommitted extra >= 1, taker must be missing from album
   // Stickers marked inOtherAccount for the taker are excluded — they won't trade those
   const tradeMatches = useMemo(() => {
     const matches = {}
@@ -219,8 +235,9 @@ export default function App() {
         const takerData = people[taker] || {}
         const list = []
         for (const s of ALL_STICKERS) {
+          const committed = committedExtras[giver]?.[s.id] ?? 0
           if (
-            extraOf(giverData, s.id) >= 1 &&
+            extraOf(giverData, s.id) - committed >= 1 &&
             albumOf(takerData, s.id) === 0 &&
             !inOtherAccountOf(takerData, s.id)
           ) {
@@ -231,7 +248,7 @@ export default function App() {
       }
     }
     return matches
-  }, [people])
+  }, [people, committedExtras])
 
   // Swap requests filtered by active person
   const swapRequestsForActive = useMemo(

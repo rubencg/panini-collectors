@@ -95,8 +95,32 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
     }
   }, [otherBro, mode])
 
-  const fromCandidates = otherBro ? (tradeMatches[`${activePerson}|${otherBro}`] || []) : []
-  const toCandidates = otherBro ? (tradeMatches[`${otherBro}|${activePerson}`] || []) : []
+  // In edit mode, add back this swap's own committed stickers so they don't
+  // falsely appear stale (they were excluded from tradeMatches because they're
+  // committed, but that commitment will be replaced when the edit is saved)
+  const fromCandidates = useMemo(() => {
+    const base = otherBro ? (tradeMatches[`${activePerson}|${otherBro}`] || []) : []
+    if (mode !== 'edit' || !initial) return base
+    const ownIds = flipped ? initial.toOffers : initial.fromOffers
+    const baseIds = new Set(base.map(s => s.id))
+    const ownMissing = ownIds
+      .filter(id => !baseIds.has(id))
+      .map(id => STICKER_BY_ID[id])
+      .filter(Boolean)
+    return [...base, ...ownMissing]
+  }, [otherBro, tradeMatches, activePerson, mode, initial, flipped])
+
+  const toCandidates = useMemo(() => {
+    const base = otherBro ? (tradeMatches[`${otherBro}|${activePerson}`] || []) : []
+    if (mode !== 'edit' || !initial) return base
+    const ownIds = flipped ? initial.fromOffers : initial.toOffers
+    const baseIds = new Set(base.map(s => s.id))
+    const ownMissing = ownIds
+      .filter(id => !baseIds.has(id))
+      .map(id => STICKER_BY_ID[id])
+      .filter(Boolean)
+    return [...base, ...ownMissing]
+  }, [otherBro, tradeMatches, activePerson, mode, initial, flipped])
 
   // Stale IDs: in initial but no longer a valid candidate
   const staleFromIds = useMemo(() => {
