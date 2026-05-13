@@ -72,7 +72,7 @@ function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggle
   )
 }
 
-export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggleOtherAccount, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ }) {
+export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggleOtherAccount, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ, onPrev, onNext }) {
   const allOwned = ownedCount === count
   const noneOwned = ownedCount === 0
   return (
@@ -104,6 +104,10 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggl
           >
             <Icon.Check /> {allOwned ? 'Page complete' : 'Mark page collected'}
           </button>
+          <div className="page-nav">
+            <button className="page-nav-btn" onClick={onPrev} title="Previous team (←)"><Icon.ChevronLeft /></button>
+            <button className="page-nav-btn" onClick={onNext} title="Next team (→)"><Icon.ChevronRight /></button>
+          </div>
         </div>
       </div>
 

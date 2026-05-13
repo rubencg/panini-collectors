@@ -208,6 +208,31 @@ export default function App() {
   const activeTeam = TEAMS.find(t => t.code === activePage)
   const isFWC = activePage === 'FWC'
 
+  const PAGE_ORDER = useMemo(() => ['FWC', ...TEAMS.map(t => t.code)], [])
+  const goToPrev = useCallback(() => {
+    setActivePage(prev => {
+      const idx = PAGE_ORDER.indexOf(prev)
+      return PAGE_ORDER[(idx - 1 + PAGE_ORDER.length) % PAGE_ORDER.length]
+    })
+  }, [PAGE_ORDER])
+  const goToNext = useCallback(() => {
+    setActivePage(prev => {
+      const idx = PAGE_ORDER.indexOf(prev)
+      return PAGE_ORDER[(idx + 1) % PAGE_ORDER.length]
+    })
+  }, [PAGE_ORDER])
+
+  useEffect(() => {
+    if (activeView !== 'album' && activeView !== 'dupes') return
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      if (e.key === 'ArrowLeft') goToPrev()
+      else if (e.key === 'ArrowRight') goToNext()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [activeView, goToPrev, goToNext])
+
   // How many extras each person has committed to pending swap requests
   const committedExtras = useMemo(() => {
     const map = {}
@@ -384,6 +409,8 @@ export default function App() {
                 progress={pageProgress}
                 activePerson={activePerson}
                 searchQ={searchQ}
+                onPrev={goToPrev}
+                onNext={goToNext}
               />
             ) : (
               <DupesPage
@@ -394,6 +421,8 @@ export default function App() {
                 onAdjust={(id, d) => adjustExtra(activePerson, id, d)}
                 activePerson={activePerson}
                 searchQ={searchQ}
+                onPrev={goToPrev}
+                onNext={goToNext}
               />
             )}
           </div>

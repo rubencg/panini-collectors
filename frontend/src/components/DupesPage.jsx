@@ -72,7 +72,7 @@ function DupeSticker({ sticker, count, extra, onPlus, onMinus, isFWC, searchQ })
   )
 }
 
-export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson, searchQ }) {
+export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson, searchQ, onPrev, onNext }) {
   const totalDupes = stickers.reduce((acc, s) => acc + extraOf(personData, s.id), 0)
   return (
     <div className="page">
@@ -89,6 +89,12 @@ export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activeP
             <div className="pt-eyebrow">{isFWC ? 'Dupes · FWC' : `Dupes · Group ${team.group} · ${team.code}`}</div>
             <h2><Highlight text={isFWC ? 'FIFA World Cup' : team.name} query={searchQ} /></h2>
             <div className="pt-meta">{activePerson}'s dupes · {totalDupes} extra copies on this page</div>
+          </div>
+        </div>
+        <div className="page-head-right">
+          <div className="page-nav">
+            <button className="page-nav-btn" onClick={onPrev} title="Previous team (←)"><Icon.ChevronLeft /></button>
+            <button className="page-nav-btn" onClick={onNext} title="Next team (→)"><Icon.ChevronRight /></button>
           </div>
         </div>
       </div>

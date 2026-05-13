@@ -40,4 +40,14 @@ export const Icon = {
       <polygon points="12,6 17.5,9.5 17.5,14.5 12,18 6.5,14.5 6.5,9.5" fill="currentColor" fillOpacity="0.18" />
     </svg>
   ),
+  ChevronLeft: (p) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+  ),
+  ChevronRight: (p) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  ),
 }

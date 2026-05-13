@@ -461,6 +461,18 @@ input { font-family: inherit; }
   margin-top: 2px;
 }
 .page-head-right { display: flex; gap: 8px; align-items: center; }
+.page-nav { display: flex; gap: 4px; }
+.page-nav-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-2);
+  color: var(--ink);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.page-nav-btn:hover { background: var(--bg-3); border-color: var(--line-3); }
 
 .btn {
   border: 1px solid var(--line-2);
