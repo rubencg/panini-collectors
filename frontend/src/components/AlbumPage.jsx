@@ -102,7 +102,7 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggl
             disabled={allOwned}
             style={allOwned ? { opacity: 0.5, cursor: 'default' } : null}
           >
-            <Icon.Check /> {allOwned ? 'Page complete' : 'Mark page collected'}
+            <Icon.Check /> {allOwned ? 'Page complete' : 'Mark collected'}
           </button>
           <div className="page-nav">
             <button className="page-nav-btn" onClick={onPrev} title="Previous team (←)"><Icon.ChevronLeft /></button>

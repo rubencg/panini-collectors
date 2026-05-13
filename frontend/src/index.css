@@ -1502,7 +1502,7 @@ input { font-family: inherit; }
     margin-bottom: 14px;
     padding-bottom: 12px;
   }
-  .page-head-left { gap: 10px; }
+  .page-head-left { gap: 10px; flex: 0 0 auto; }
   .page-flag { width: 44px; height: 30px; }
   .page-titles h2 { font-size: 20px; }
   .page-titles .pt-eyebrow { font-size: 9.5px; }
