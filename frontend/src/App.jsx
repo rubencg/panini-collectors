@@ -11,6 +11,7 @@ import { Trades } from './components/Trades.jsx'
 import { InOtherAccount } from './components/InOtherAccount.jsx'
 import { SwapRequests } from './components/SwapRequests.jsx'
 import { SwapRequestModal } from './components/SwapRequestModal.jsx'
+import { AccountTransferModal } from './components/AccountTransferModal.jsx'
 import { ConfirmModal } from './components/ConfirmModal.jsx'
 
 // personData shape: { "MEX-0": { count: 1, extra: 0, inOtherAccount: false }, ... }
@@ -56,6 +57,10 @@ export default function App() {
   const [swapRequests, setSwapRequests] = useState([])
   const [swapModal, setSwapModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
 
+  // Account transfers state
+  const [accountTransfers, setAccountTransfers] = useState([])
+  const [transferModal, setTransferModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
+
   useEffect(() => {
     fetch(`${API_BASE}/api/state`)
       .then(r => r.json())
@@ -74,6 +79,13 @@ export default function App() {
     fetch(`${API_BASE}/api/swap-requests`)
       .then(r => r.json())
       .then(setSwapRequests)
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/account-transfers`)
+      .then(r => r.json())
+      .then(setAccountTransfers)
       .catch(() => {})
   }, [])
 
@@ -281,6 +293,11 @@ export default function App() {
     [swapRequests, activePerson]
   )
 
+  const accountTransfersForActive = useMemo(
+    () => accountTransfers.filter(t => t.person === activePerson),
+    [accountTransfers, activePerson]
+  )
+
   const stats = personStats[activePerson] || { album: 0, dupes: 0 }
   const inOtherAccountCount = useMemo(() => {
     const data = people[activePerson] || {}
@@ -330,6 +347,48 @@ export default function App() {
   const deleteSwap = useCallback(async (id) => {
     await fetch(`${API_BASE}/api/swap-requests/${id}`, { method: 'DELETE' })
     setSwapRequests(prev => prev.filter(s => s.id !== id))
+  }, [])
+
+  // Account transfer helpers
+  const createTransfer = async (payload) => {
+    const r = await fetch(`${API_BASE}/api/account-transfers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ person: activePerson, ...payload }),
+    })
+    const created = await r.json()
+    setAccountTransfers(prev => [created, ...prev])
+  }
+
+  const updateTransfer = async (id, payload) => {
+    const r = await fetch(`${API_BASE}/api/account-transfers/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ person: activePerson, ...payload }),
+    })
+    const updated = await r.json()
+    setAccountTransfers(prev => prev.map(t => t.id === id ? updated : t))
+  }
+
+  const deleteTransfer = useCallback(async (id) => {
+    await fetch(`${API_BASE}/api/account-transfers/${id}`, { method: 'DELETE' })
+    setAccountTransfers(prev => prev.filter(t => t.id !== id))
+  }, [])
+
+  const completeTransfer = useCallback(async (id) => {
+    const r = await fetch(`${API_BASE}/api/account-transfers/${id}/complete`, { method: 'POST' })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}))
+      alert(`Could not complete transfer: ${err.error || r.status}`)
+      return
+    }
+    const stateRes = await fetch(`${API_BASE}/api/state`).then(res => res.json())
+    setPeople(prev => {
+      const next = { ...prev }
+      for (const p of PEOPLE) next[p] = stateRes[p] || {}
+      return next
+    })
+    setAccountTransfers(prev => prev.filter(t => t.id !== id))
   }, [])
 
   const completeSwap = useCallback(async (id) => {
@@ -434,7 +493,19 @@ export default function App() {
       )}
 
       {activeView === 'other-account' && (
-        <InOtherAccount personData={personData} activePerson={activePerson} />
+        <InOtherAccount
+          personData={personData}
+          activePerson={activePerson}
+          accountTransfers={accountTransfersForActive}
+          onNewTransfer={() => setTransferModal({ mode: 'create' })}
+          onEditTransfer={(id) => setTransferModal({ mode: 'edit', id })}
+          onDeleteTransfer={deleteTransfer}
+          onCompleteTransfer={(transfer) => setConfirm({
+            kind: 'complete-transfer',
+            swap: { fromPerson: activePerson },
+            action: async () => { await completeTransfer(transfer.id); setConfirm(null) },
+          })}
+        />
       )}
 
       {activeView === 'swap-requests' && (
@@ -466,6 +537,20 @@ export default function App() {
           swap={confirm.swap}
           onCancel={() => setConfirm(null)}
           onConfirm={confirm.action}
+        />
+      )}
+
+      {transferModal && (
+        <AccountTransferModal
+          mode={transferModal.mode}
+          initial={transferModal.mode === 'edit' ? accountTransfers.find(t => t.id === transferModal.id) : null}
+          personData={personData}
+          onCancel={() => setTransferModal(null)}
+          onSubmit={async (payload) => {
+            if (transferModal.mode === 'create') await createTransfer(payload)
+            else await updateTransfer(transferModal.id, payload)
+            setTransferModal(null)
+          }}
         />
       )}
 

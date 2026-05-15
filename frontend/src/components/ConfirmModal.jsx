@@ -40,6 +40,25 @@ export function ConfirmModal({ kind, person, page, swap, onCancel, onConfirm }) 
     )
   }
 
+  if (kind === 'complete-transfer') {
+    return (
+      <div className="modal-bg" onClick={onCancel}>
+        <div className="modal" onClick={e => e.stopPropagation()}>
+          <h3>Complete transfer?</h3>
+          <p>
+            This will mark the selected 2nd account stickers as owned in{' '}
+            <strong>{swap?.fromPerson}</strong>&apos;s main album and remove the 2nd account flag.
+            This action cannot be undone.
+          </p>
+          <div className="modal-actions">
+            <button className="btn ghost" onClick={onCancel}>Cancel</button>
+            <button className="btn primary" onClick={onConfirm}>Yes, complete transfer</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const isMark = kind === 'mark-all'
   return (
     <div className="modal-bg" onClick={onCancel}>

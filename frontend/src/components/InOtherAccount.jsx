@@ -1,12 +1,20 @@
 import { useMemo } from 'react'
 import { ALL_STICKERS } from '../data.js'
+import { AccountTransferCard } from './AccountTransferCard.jsx'
 
-export function InOtherAccount({ personData, activePerson }) {
+export function InOtherAccount({ personData, activePerson, accountTransfers, onNewTransfer, onEditTransfer, onDeleteTransfer, onCompleteTransfer }) {
+  const committedIds = useMemo(() => {
+    const ids = new Set()
+    for (const t of accountTransfers) {
+      for (const id of t.otherAcctStickers) ids.add(id)
+    }
+    return ids
+  }, [accountTransfers])
+
   const stickers = useMemo(() => {
-    return ALL_STICKERS.filter(s => personData?.[s.id]?.inOtherAccount)
-  }, [personData])
+    return ALL_STICKERS.filter(s => personData?.[s.id]?.inOtherAccount && !committedIds.has(s.id))
+  }, [personData, committedIds])
 
-  // Group by team code (s.code)
   const grouped = useMemo(() => {
     const g = {}
     for (const s of stickers) {
@@ -23,9 +31,14 @@ export function InOtherAccount({ personData, activePerson }) {
           <h2 style={{ margin: 0 }}>In another account</h2>
           <p>Stickers {activePerson} has in a second account and <strong>won't</strong> be trading.</p>
         </div>
-        <span className="mono" style={{ color: 'var(--warn)', fontSize: 12, alignSelf: 'flex-start' }}>
-          {stickers.length} sticker{stickers.length === 1 ? '' : 's'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <span className="mono" style={{ color: 'var(--warn)', fontSize: 12, alignSelf: 'flex-start' }}>
+            {stickers.length} sticker{stickers.length === 1 ? '' : 's'}
+          </span>
+          <button className="btn primary" style={{ fontSize: 12, padding: '4px 10px' }} onClick={onNewTransfer}>
+            + Transfer
+          </button>
+        </div>
       </div>
 
       {stickers.length === 0 ? (
@@ -44,6 +57,23 @@ export function InOtherAccount({ personData, activePerson }) {
                   return `${num}${namePart}`
                 }).join(' · ')}
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {accountTransfers.length > 0 && (
+        <div className="acct-transfers-section">
+          <div className="acct-transfers-section-label mono">Pending transfers</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {accountTransfers.map(t => (
+              <AccountTransferCard
+                key={t.id}
+                transfer={t}
+                onEdit={onEditTransfer}
+                onDelete={onDeleteTransfer}
+                onComplete={onCompleteTransfer}
+              />
             ))}
           </div>
         </div>

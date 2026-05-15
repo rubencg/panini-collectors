@@ -998,6 +998,37 @@ input { font-family: inherit; }
   color: var(--warn);
 }
 
+/* strikethrough chip variant for account transfer cards */
+.acct-transfer-chip--strike s {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--warn) 70%, transparent);
+  opacity: 0.75;
+}
+
+/* account transfers section below the sticker list */
+.acct-transfers-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.acct-transfers-section-label {
+  font-size: 10px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.acct-transfer-card .acct-transfer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 @media (max-width: 640px) {
   .sticker-other-acct-btn {
     font-size: 8.5px;
