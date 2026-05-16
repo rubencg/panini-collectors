@@ -1,5 +1,18 @@
-import { useState } from 'react'
-import { STICKER_BY_ID } from '../data.js'
+import { useState, useMemo } from 'react'
+import { STICKER_BY_ID, TEAMS } from '../data.js'
+
+const GROUP_ORDER = ['FWC', ...TEAMS.map(t => t.code)]
+const GROUP_RANK = Object.fromEntries(GROUP_ORDER.map((code, i) => [code, i]))
+
+function sortByAlbumOrder(ids) {
+  return [...ids].sort((a, b) => {
+    const sa = STICKER_BY_ID[a], sb = STICKER_BY_ID[b]
+    const ra = GROUP_RANK[sa?.code ?? ''] ?? 999
+    const rb = GROUP_RANK[sb?.code ?? ''] ?? 999
+    if (ra !== rb) return ra - rb
+    return (sa?.num ?? 0) - (sb?.num ?? 0)
+  })
+}
 
 function chipLabel(id) {
   const s = STICKER_BY_ID[id]
@@ -12,10 +25,13 @@ function chipLabel(id) {
 function MiniPile({ label, color, ids }) {
   if (ids.length === 0) return null
 
-  // Count duplicates for dupe pile display
-  const counts = {}
-  for (const id of ids) counts[id] = (counts[id] || 0) + 1
-  const uniqueIds = [...new Set(ids)]
+  const counts = useMemo(() => {
+    const c = {}
+    for (const id of ids) c[id] = (c[id] || 0) + 1
+    return c
+  }, [ids])
+
+  const uniqueIds = useMemo(() => sortByAlbumOrder([...new Set(ids)]), [ids])
 
   return (
     <div className="po-card-pile">
