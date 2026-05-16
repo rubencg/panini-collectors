@@ -5,6 +5,7 @@ import stateRouter from './routes/state.js'
 import stickersRouter from './routes/stickers.js'
 import swapRequestsRouter from './routes/swapRequests.js'
 import accountTransfersRouter from './routes/accountTransfers.js'
+import packOpeningsRouter from './routes/packOpenings.js'
 
 export const prisma = new PrismaClient()
 
@@ -28,6 +29,7 @@ app.use('/api', stateRouter)
 app.use('/api', stickersRouter)
 app.use('/api', swapRequestsRouter)
 app.use('/api', accountTransfersRouter)
+app.use('/api', packOpeningsRouter)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, async () => {

@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { ALL_STICKERS } from '../data.js'
 import { AccountTransferCard } from './AccountTransferCard.jsx'
+import { PackOpeningCard } from './PackOpeningCard.jsx'
 
-export function InOtherAccount({ personData, activePerson, accountTransfers, onNewTransfer, onEditTransfer, onDeleteTransfer, onCompleteTransfer, onPackOpening }) {
+export function InOtherAccount({ personData, activePerson, accountTransfers, onNewTransfer, onEditTransfer, onDeleteTransfer, onCompleteTransfer, onPackOpening, packOpenings, onEditPackOpening, onDeletePackOpening, onCompletePackOpening }) {
   const committedIds = useMemo(() => {
     const ids = new Set()
     for (const t of accountTransfers) {
@@ -60,6 +61,23 @@ export function InOtherAccount({ personData, activePerson, accountTransfers, onN
                   return `${num}${namePart}`
                 }).join(' · ')}
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {packOpenings.length > 0 && (
+        <div className="acct-transfers-section">
+          <div className="acct-transfers-section-label mono">Pending pack openings</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {packOpenings.map(po => (
+              <PackOpeningCard
+                key={po.id}
+                packOpening={po}
+                onEdit={onEditPackOpening}
+                onDelete={onDeletePackOpening}
+                onComplete={onCompletePackOpening}
+              />
             ))}
           </div>
         </div>

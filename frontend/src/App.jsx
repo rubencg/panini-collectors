@@ -62,8 +62,10 @@ export default function App() {
   const [accountTransfers, setAccountTransfers] = useState([])
   const [transferModal, setTransferModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
 
-  // Pack opening state
-  const [packOpeningOpen, setPackOpeningOpen] = useState(false)
+  // Pack openings state
+  const [packOpenings, setPackOpenings] = useState([])
+  const [packOpeningModal, setPackOpeningModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
+  const [packOpeningSubmitting, setPackOpeningSubmitting] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE}/api/state`)
@@ -90,6 +92,13 @@ export default function App() {
     fetch(`${API_BASE}/api/account-transfers`)
       .then(r => r.json())
       .then(setAccountTransfers)
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/pack-openings`)
+      .then(r => r.json())
+      .then(setPackOpenings)
       .catch(() => {})
   }, [])
 
@@ -308,26 +317,61 @@ export default function App() {
     return Object.values(data).filter(v => v.inOtherAccount).length
   }, [people, activePerson])
 
-  const handlePackOpeningComplete = useCallback(({ album, albumFrom2ndAcct, dupes, otherAcct }) => {
-    for (const id of album) {
-      if (!inAlbum(people[activePerson], id)) {
-        toggleAlbum(activePerson, id)
-      }
+  const packOpeningsForActive = useMemo(
+    () => packOpenings.filter(po => po.person === activePerson),
+    [packOpenings, activePerson]
+  )
+
+  const createPackOpening = async (payload) => {
+    setPackOpeningSubmitting(true)
+    try {
+      const r = await fetch(`${API_BASE}/api/pack-openings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ person: activePerson, ...payload }),
+      })
+      const created = await r.json()
+      setPackOpenings(prev => [created, ...prev])
+    } finally {
+      setPackOpeningSubmitting(false)
     }
-    // 2nd acct copy becomes a dupe when you get it in the main account
-    for (const id of albumFrom2ndAcct) {
-      adjustExtra(activePerson, id, 1)
+  }
+
+  const updatePackOpening = async (id, payload) => {
+    setPackOpeningSubmitting(true)
+    try {
+      const r = await fetch(`${API_BASE}/api/pack-openings/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const updated = await r.json()
+      setPackOpenings(prev => prev.map(po => po.id === id ? updated : po))
+    } finally {
+      setPackOpeningSubmitting(false)
     }
-    for (const id of dupes) {
-      adjustExtra(activePerson, id, 1)
+  }
+
+  const deletePackOpening = useCallback(async (id) => {
+    await fetch(`${API_BASE}/api/pack-openings/${id}`, { method: 'DELETE' })
+    setPackOpenings(prev => prev.filter(po => po.id !== id))
+  }, [])
+
+  const completePackOpening = useCallback(async (id) => {
+    const r = await fetch(`${API_BASE}/api/pack-openings/${id}/complete`, { method: 'POST' })
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}))
+      alert(`Could not complete pack opening: ${err.error || r.status}`)
+      return
     }
-    for (const id of otherAcct) {
-      if (!inOtherAccountOf(people[activePerson], id)) {
-        toggleInOtherAccount(activePerson, id)
-      }
-    }
-    setPackOpeningOpen(false)
-  }, [activePerson, people, toggleAlbum, toggleInOtherAccount, adjustExtra])
+    const stateRes = await fetch(`${API_BASE}/api/state`).then(res => res.json())
+    setPeople(prev => {
+      const next = { ...prev }
+      for (const p of PEOPLE) next[p] = stateRes[p] || {}
+      return next
+    })
+    setPackOpenings(prev => prev.filter(po => po.id !== id))
+  }, [])
 
   const searchQ = search.trim().toUpperCase()
 
@@ -523,7 +567,15 @@ export default function App() {
             swap: { fromPerson: activePerson },
             action: async () => { await completeTransfer(transfer.id); setConfirm(null) },
           })}
-          onPackOpening={() => setPackOpeningOpen(true)}
+          onPackOpening={() => setPackOpeningModal({ mode: 'create' })}
+          packOpenings={packOpeningsForActive}
+          onEditPackOpening={(id) => setPackOpeningModal({ mode: 'edit', id })}
+          onDeletePackOpening={deletePackOpening}
+          onCompletePackOpening={(po) => setConfirm({
+            kind: 'complete-transfer',
+            swap: { fromPerson: activePerson },
+            action: async () => { await completePackOpening(po.id); setConfirm(null) },
+          })}
         />
       )}
 
@@ -548,11 +600,18 @@ export default function App() {
 
       <div className="footer">// COLLECTION TRACKER · WC26 EDITION</div>
 
-      {packOpeningOpen && (
+      {packOpeningModal && (
         <PackOpeningModal
+          mode={packOpeningModal.mode}
+          initial={packOpeningModal.mode === 'edit' ? packOpenings.find(po => po.id === packOpeningModal.id) : null}
           personData={personData}
-          onCancel={() => setPackOpeningOpen(false)}
-          onComplete={handlePackOpeningComplete}
+          submitting={packOpeningSubmitting}
+          onCancel={() => setPackOpeningModal(null)}
+          onSave={async (payload) => {
+            if (packOpeningModal.mode === 'create') await createPackOpening(payload)
+            else await updatePackOpening(packOpeningModal.id, payload)
+            setPackOpeningModal(null)
+          }}
         />
       )}
 

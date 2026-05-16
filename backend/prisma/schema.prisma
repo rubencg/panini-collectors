@@ -14,6 +14,7 @@ model Person {
   swapRequestsSent     SwapRequest[]     @relation("SwapRequestsSent")
   swapRequestsReceived SwapRequest[]     @relation("SwapRequestsReceived")
   accountTransfers     AccountTransfer[]
+  packOpenings         PackOpening[]
 }
 
 model PersonSticker {
@@ -80,4 +81,26 @@ model AccountTransferItem {
   transfer   AccountTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
 
   @@index([transferId])
+}
+
+model PackOpening {
+  id        Int               @id @default(autoincrement())
+  personId  Int
+  status    String            @default("pending")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  person    Person            @relation(fields: [personId], references: [id], onDelete: Cascade)
+  items     PackOpeningItem[]
+
+  @@index([personId])
+}
+
+model PackOpeningItem {
+  id            Int         @id @default(autoincrement())
+  packOpeningId Int
+  stickerId     String
+  itemType      String      // "album" | "dupe" | "other_acct"
+  packOpening   PackOpening @relation(fields: [packOpeningId], references: [id], onDelete: Cascade)
+
+  @@index([packOpeningId])
 }

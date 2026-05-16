@@ -29,7 +29,6 @@ function chipLabel(s) {
   return `${num}${tail}`
 }
 
-// Pile for Album and 2nd Acct (Set-based, no duplicates)
 function SetPile({ title, ids, color, onRemove }) {
   const stickers = [...ids].map(id => STICKER_BY_ID[id]).filter(Boolean)
   return (
@@ -56,7 +55,6 @@ function SetPile({ title, ids, color, onRemove }) {
   )
 }
 
-// Pile for Dupes (Array-based, duplicates shown as ×N count badge)
 function DupePile({ title, ids, color, onRemove }) {
   const counts = useMemo(() => {
     const c = {}
@@ -96,13 +94,18 @@ function DupePile({ title, ids, color, onRemove }) {
   )
 }
 
-export function PackOpeningModal({ personData, onCancel, onComplete }) {
+export function PackOpeningModal({ mode, initial, personData, onCancel, onSave, submitting }) {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
-  const [stagedAlbum, setStagedAlbum] = useState(new Set())
-  const [stagedDupes, setStagedDupes] = useState([]) // array: same sticker can appear N times
-  const [staged2ndAcct, setStaged2ndAcct] = useState(new Set())
-  const [showSummary, setShowSummary] = useState(false)
+  const [stagedAlbum, setStagedAlbum] = useState(
+    () => new Set(initial?.albumItems || [])
+  )
+  const [stagedDupes, setStagedDupes] = useState(
+    () => [...(initial?.dupesItems || [])]
+  )
+  const [staged2ndAcct, setStaged2ndAcct] = useState(
+    () => new Set(initial?.otherAcctItems || [])
+  )
   const inputRef = useRef(null)
 
   useEffect(() => { inputRef.current?.focus() }, [])
@@ -146,69 +149,22 @@ export function PackOpeningModal({ personData, onCancel, onComplete }) {
   })
   const removeFrom2ndAcct = (id) => setStaged2ndAcct(prev => { const n = new Set(prev); n.delete(id); return n })
 
-  const canComplete = stagedAlbum.size > 0 || stagedDupes.length > 0 || staged2ndAcct.size > 0
+  const canSave = (stagedAlbum.size > 0 || stagedDupes.length > 0 || staged2ndAcct.size > 0) && !submitting
 
-  // Stickers going to Album that were previously in 2nd acct → their 2nd acct copy auto-becomes a dupe
-  const albumFrom2ndAcct = useMemo(
-    () => [...stagedAlbum].filter(id => personData[id]?.inOtherAccount),
-    [stagedAlbum, personData]
-  )
-
-  if (showSummary) {
-    return (
-      <div className="modal-bg" onClick={onCancel}>
-        <div className="pack-modal" onClick={e => e.stopPropagation()}>
-          <div className="swap-modal-header">
-            <h3>Pack Opening — Summary</h3>
-            <button className="swap-modal-close" onClick={onCancel} aria-label="Close">✕</button>
-          </div>
-          <div className="pack-modal-body">
-            <p className="pack-summary-note">These changes will be applied when you confirm.</p>
-            <div className="pack-modal-piles">
-              <SetPile title="→ Album" ids={stagedAlbum} color="var(--mint)" />
-              <SetPile title="→ 2nd Account" ids={staged2ndAcct} color="var(--warn)" />
-              <DupePile title="→ Dupes (+1)" ids={stagedDupes} color="var(--cyan)" />
-            </div>
-            {albumFrom2ndAcct.length > 0 && (
-              <div className="pack-auto-dupe-note">
-                <span className="pack-auto-dupe-label">Auto +1 dupe (was in 2nd acct)</span>
-                <div className="pack-pile-chips" style={{ marginTop: 6 }}>
-                  {albumFrom2ndAcct.map(id => {
-                    const s = STICKER_BY_ID[id]
-                    return s ? (
-                      <span key={id} className="pack-pile-chip">
-                        <strong>{s.code}</strong> {chipLabel(s)}
-                      </span>
-                    ) : null
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="swap-modal-footer">
-            <button className="btn ghost" onClick={() => setShowSummary(false)}>Back</button>
-            <button
-              className="btn primary"
-              onClick={() => onComplete({
-                album: [...stagedAlbum],
-                albumFrom2ndAcct,
-                dupes: stagedDupes,
-                otherAcct: [...staged2ndAcct],
-              })}
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
-      </div>
-    )
+  const handleSave = () => {
+    if (!canSave) return
+    onSave({
+      albumItems: [...stagedAlbum],
+      dupesItems: stagedDupes,
+      otherAcctItems: [...staged2ndAcct],
+    })
   }
 
   return (
     <div className="modal-bg" onClick={onCancel}>
       <div className="pack-modal" onClick={e => e.stopPropagation()}>
         <div className="swap-modal-header">
-          <h3>Pack Opening</h3>
+          <h3>{mode === 'edit' ? 'Edit Pack Opening' : 'New Pack Opening'}</h3>
           <button className="swap-modal-close" onClick={onCancel} aria-label="Close">✕</button>
         </div>
 
@@ -289,8 +245,8 @@ export function PackOpeningModal({ personData, onCancel, onComplete }) {
 
         <div className="swap-modal-footer">
           <button className="btn ghost" onClick={onCancel}>Cancel</button>
-          <button className="btn primary" disabled={!canComplete} onClick={() => setShowSummary(true)}>
-            Complete Pack Opening
+          <button className="btn primary" disabled={!canSave} onClick={handleSave}>
+            {submitting ? 'Saving…' : mode === 'edit' ? 'Update' : 'Save Pack Opening'}
           </button>
         </div>
       </div>
