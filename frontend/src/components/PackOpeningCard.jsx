@@ -31,21 +31,32 @@ function MiniPile({ label, color, ids }) {
     return c
   }, [ids])
 
-  const uniqueIds = useMemo(() => sortByAlbumOrder([...new Set(ids)]), [ids])
+  const grouped = useMemo(() => {
+    const sorted = sortByAlbumOrder([...new Set(ids)])
+    const g = {}
+    for (const id of sorted) {
+      const code = STICKER_BY_ID[id]?.code ?? id.split('-')[0]
+      if (!g[code]) g[code] = []
+      g[code].push(id)
+    }
+    return g
+  }, [ids])
 
   return (
     <div className="po-card-pile">
       <span className="po-card-pile-label" style={{ color }}>{label}</span>
       <div className="trade-stickers" style={{ marginTop: 4 }}>
-        {uniqueIds.map(id => {
-          const s = STICKER_BY_ID[id]
-          const code = id.split('-')[0]
-          const num = s ? String(s.num).padStart(2, '0') : (id.split('-')[1] || '')
-          const tail = s && s.num !== 0 && s.label ? ` ${s.label.split(' ').slice(-1)[0]}` : ''
-          const countBadge = counts[id] > 1 ? ` ×${counts[id]}` : ''
+        {Object.entries(grouped).map(([code, groupIds]) => {
+          const parts = groupIds.map(id => {
+            const s = STICKER_BY_ID[id]
+            const num = s ? String(s.num).padStart(2, '0') : (id.split('-')[1] || '')
+            const tail = s && s.num !== 0 && s.label ? ` ${s.label.split(' ').slice(-1)[0]}` : ''
+            const badge = counts[id] > 1 ? ` ×${counts[id]}` : ''
+            return `${num}${tail}${badge}`
+          })
           return (
-            <span className="trade-chip" key={id} style={{ fontSize: 11 }}>
-              <strong>{code}</strong> {num}{tail}{countBadge}
+            <span className="trade-chip" key={code} style={{ fontSize: 11 }}>
+              <strong>{code}</strong> {parts.join(' · ')}
             </span>
           )
         })}
