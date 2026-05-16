@@ -21,12 +21,12 @@ export function ViewTabs({ activeView, setActiveView, albumCount, dupesCount, sw
           <span className="count mono swap-tab-badge">{swapCount}</span>
         )}
       </button>
-      {inOtherAccountCount > 0 && (
-        <button className={`viewtab ${activeView === 'other-account' ? 'active' : ''}`} onClick={() => setActiveView('other-account')}>
-          <Icon.Stack /> Other Acct
+      <button className={`viewtab ${activeView === 'other-account' ? 'active' : ''}`} onClick={() => setActiveView('other-account')}>
+        <Icon.Stack /> Other Acct
+        {inOtherAccountCount > 0 && (
           <span className="count mono other-acct-tab-badge">{inOtherAccountCount}</span>
-        </button>
-      )}
+        )}
+      </button>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { ALL_STICKERS } from '../data.js'
 import { AccountTransferCard } from './AccountTransferCard.jsx'
 
-export function InOtherAccount({ personData, activePerson, accountTransfers, onNewTransfer, onEditTransfer, onDeleteTransfer, onCompleteTransfer }) {
+export function InOtherAccount({ personData, activePerson, accountTransfers, onNewTransfer, onEditTransfer, onDeleteTransfer, onCompleteTransfer, onPackOpening }) {
   const committedIds = useMemo(() => {
     const ids = new Set()
     for (const t of accountTransfers) {
@@ -35,6 +35,9 @@ export function InOtherAccount({ personData, activePerson, accountTransfers, onN
           <span className="mono" style={{ color: 'var(--warn)', fontSize: 12, alignSelf: 'flex-start' }}>
             {stickers.length} sticker{stickers.length === 1 ? '' : 's'}
           </span>
+          <button className="btn ghost" style={{ fontSize: 12, padding: '4px 10px' }} onClick={onPackOpening}>
+            Pack Opening
+          </button>
           <button className="btn primary" style={{ fontSize: 12, padding: '4px 10px' }} onClick={onNewTransfer}>
             + Transfer
           </button>

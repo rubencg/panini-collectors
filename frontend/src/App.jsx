@@ -13,6 +13,7 @@ import { SwapRequests } from './components/SwapRequests.jsx'
 import { SwapRequestModal } from './components/SwapRequestModal.jsx'
 import { AccountTransferModal } from './components/AccountTransferModal.jsx'
 import { ConfirmModal } from './components/ConfirmModal.jsx'
+import { PackOpeningModal } from './components/PackOpeningModal.jsx'
 
 // personData shape: { "MEX-0": { count: 1, extra: 0, inOtherAccount: false }, ... }
 // count = 1 means in album; extra = N means N tradeable dupes (independent of album)
@@ -60,6 +61,9 @@ export default function App() {
   // Account transfers state
   const [accountTransfers, setAccountTransfers] = useState([])
   const [transferModal, setTransferModal] = useState(null) // { mode: 'create' | 'edit', id?: number }
+
+  // Pack opening state
+  const [packOpeningOpen, setPackOpeningOpen] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE}/api/state`)
@@ -304,12 +308,26 @@ export default function App() {
     return Object.values(data).filter(v => v.inOtherAccount).length
   }, [people, activePerson])
 
-  // If the other-account tab becomes empty (last sticker was un-flagged), fall back to album
-  useEffect(() => {
-    if (activeView === 'other-account' && inOtherAccountCount === 0) {
-      setActiveView('album')
+  const handlePackOpeningComplete = useCallback(({ album, albumFrom2ndAcct, dupes, otherAcct }) => {
+    for (const id of album) {
+      if (!inAlbum(people[activePerson], id)) {
+        toggleAlbum(activePerson, id)
+      }
     }
-  }, [activeView, inOtherAccountCount])
+    // 2nd acct copy becomes a dupe when you get it in the main account
+    for (const id of albumFrom2ndAcct) {
+      adjustExtra(activePerson, id, 1)
+    }
+    for (const id of dupes) {
+      adjustExtra(activePerson, id, 1)
+    }
+    for (const id of otherAcct) {
+      if (!inOtherAccountOf(people[activePerson], id)) {
+        toggleInOtherAccount(activePerson, id)
+      }
+    }
+    setPackOpeningOpen(false)
+  }, [activePerson, people, toggleAlbum, toggleInOtherAccount, adjustExtra])
 
   const searchQ = search.trim().toUpperCase()
 
@@ -505,6 +523,7 @@ export default function App() {
             swap: { fromPerson: activePerson },
             action: async () => { await completeTransfer(transfer.id); setConfirm(null) },
           })}
+          onPackOpening={() => setPackOpeningOpen(true)}
         />
       )}
 
@@ -528,6 +547,14 @@ export default function App() {
       )}
 
       <div className="footer">// COLLECTION TRACKER · WC26 EDITION</div>
+
+      {packOpeningOpen && (
+        <PackOpeningModal
+          personData={personData}
+          onCancel={() => setPackOpeningOpen(false)}
+          onComplete={handlePackOpeningComplete}
+        />
+      )}
 
       {confirm && (
         <ConfirmModal
