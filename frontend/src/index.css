@@ -1326,6 +1326,15 @@ input { font-family: inherit; }
   letter-spacing: 0.08em;
   min-width: 32px;
 }
+.swap-modal-chip-progress {
+  font-size: 10px;
+  color: var(--ink-dim);
+  margin-right: 2px;
+}
+.swap-modal-chip-progress--near {
+  color: var(--warn);
+  font-weight: 600;
+}
 /* Clickable chip inside the modal */
 .swap-chip {
   font-family: var(--mono);

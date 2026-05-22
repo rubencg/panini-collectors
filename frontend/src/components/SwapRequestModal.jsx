@@ -1,5 +1,22 @@
 import { useState, useMemo, useEffect } from 'react'
-import { PEOPLE, STICKER_BY_ID } from '../data.js'
+import { PEOPLE, STICKER_BY_ID, STICKERS_PER_TEAM, FWC_COUNT } from '../data.js'
+
+function ownedCountForCode(personData, code) {
+  const total = code === 'FWC' ? FWC_COUNT : STICKERS_PER_TEAM
+  let owned = 0
+  if (code === 'FWC') {
+    for (let i = 1; i <= FWC_COUNT; i++) {
+      const s = personData?.[`FWC-${i}`]
+      if ((s?.count || 0) >= 1 || s?.inOtherAccount) owned++
+    }
+  } else {
+    for (let i = 0; i < STICKERS_PER_TEAM; i++) {
+      const s = personData?.[`${code}-${i}`]
+      if ((s?.count || 0) >= 1 || s?.inOtherAccount) owned++
+    }
+  }
+  return { owned, total }
+}
 
 function ChipButton({ stickerId, selected, stale, onClick }) {
   const s = STICKER_BY_ID[stickerId]
@@ -23,7 +40,7 @@ function ChipButton({ stickerId, selected, stale, onClick }) {
   )
 }
 
-function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLabel }) {
+function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLabel, personData }) {
   // Group candidates + stale items by team code for display
   const allIds = useMemo(() => {
     const ids = new Set([...candidates.map(s => s.id), ...staleIds])
@@ -54,9 +71,13 @@ function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLab
         <div className="swap-modal-bucket-empty">No trade candidates with this bro</div>
       ) : (
         <div className="swap-modal-chips">
-          {Object.entries(grouped).map(([code, ids]) => (
+          {Object.entries(grouped).map(([code, ids]) => {
+            const { owned, total } = ownedCountForCode(personData, code)
+            const oneLeft = owned === total - 1
+            return (
             <div key={code} className="swap-modal-chip-group">
               <span className="swap-modal-chip-code mono">{code}</span>
+              <span className={`swap-modal-chip-progress mono${oneLeft ? ' swap-modal-chip-progress--near' : ''}`}>{owned}/{total}</span>
               {ids.map(id => (
                 <ChipButton
                   key={id}
@@ -67,14 +88,15 @@ function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLab
                 />
               ))}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
   )
 }
 
-export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, onCancel, onSubmit }) {
+export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, people, onCancel, onSubmit }) {
   const otherPeople = PEOPLE.filter(p => p !== activePerson)
 
   // When activePerson is the toPerson (swap was created by the other side), flip perspective
@@ -216,6 +238,7 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
                 selected={fromOffers}
                 onToggle={toggleFrom}
                 countLabel={`${fromOffers.size} / ${fromCandidates.length + staleFromIds.length}`}
+                personData={people?.[otherBro] || {}}
               />
               <BucketPanel
                 label={`${otherBro} offers`}
@@ -224,6 +247,7 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, on
                 selected={toOffers}
                 onToggle={toggleTo}
                 countLabel={`${toOffers.size} / ${toCandidates.length + staleToIds.length}`}
+                personData={people?.[activePerson] || {}}
               />
             </div>
             <div className="swap-modal-other-acct-row">

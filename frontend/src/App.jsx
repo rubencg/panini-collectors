@@ -646,6 +646,7 @@ export default function App() {
           initial={swapModal.mode === 'edit' ? swapRequests.find(s => s.id === swapModal.id) : null}
           activePerson={activePerson}
           tradeMatches={tradeMatches}
+          people={people}
           onCancel={() => setSwapModal(null)}
           onSubmit={async (payload) => {
             if (swapModal.mode === 'create') await createSwap(payload)
