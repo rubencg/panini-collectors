@@ -6,7 +6,10 @@ function FlagChip({ colors }) {
   return <>{colors.map((c, i) => <i key={i} style={{ background: c }} />)}</>
 }
 
-function inAlbum(personData, id) { return (personData?.[id]?.count || 0) >= 1 }
+function inAlbum(personData, id) {
+  const s = personData?.[id]
+  return (s?.count || 0) >= 1 || !!s?.inOtherAccount
+}
 function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
 export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
