@@ -110,7 +110,10 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
                     {mode === 'dupes' ? (
                       <div className="tile-dupe mono">{d > 0 ? `+${d}` : '·'}</div>
                     ) : (
-                      <div className="tile-prog"><i style={{ width: `${p * 100}%` }} /></div>
+                      <>
+                        <div className="tile-prog"><i style={{ width: `${p * 100}%` }} /></div>
+                        <div className="tile-count mono">{Math.round(p * STICKERS_PER_TEAM)}/{STICKERS_PER_TEAM}</div>
+                      </>
                     )}
                   </button>
                 )
