@@ -9,6 +9,7 @@ import { AlbumPage } from './components/AlbumPage.jsx'
 import { DupesPage } from './components/DupesPage.jsx'
 import { Trades } from './components/Trades.jsx'
 import { InOtherAccount } from './components/InOtherAccount.jsx'
+import { MissingPage } from './components/MissingPage.jsx'
 import { SwapRequests } from './components/SwapRequests.jsx'
 import { SwapRequestModal } from './components/SwapRequestModal.jsx'
 import { AccountTransferModal } from './components/AccountTransferModal.jsx'
@@ -317,6 +318,14 @@ export default function App() {
     return Object.values(data).filter(v => v.inOtherAccount).length
   }, [people, activePerson])
 
+  const missingCount = useMemo(() => {
+    const data = people[activePerson] || {}
+    return ALL_STICKERS.filter(s => {
+      const d = data[s.id]
+      return (d?.count || 0) < 1 && !d?.inOtherAccount
+    }).length
+  }, [people, activePerson])
+
   const packOpeningsForActive = useMemo(
     () => packOpenings.filter(po => po.person === activePerson),
     [packOpenings, activePerson]
@@ -502,6 +511,7 @@ export default function App() {
         dupesCount={stats.dupes}
         swapCount={swapRequestsForActive.length}
         inOtherAccountCount={inOtherAccountCount}
+        missingCount={missingCount}
       />
 
       {(activeView === 'album' || activeView === 'dupes') && (
@@ -576,6 +586,13 @@ export default function App() {
             swap: { fromPerson: activePerson },
             action: async () => { await completePackOpening(po.id); setConfirm(null) },
           })}
+        />
+      )}
+
+      {activeView === 'missing' && (
+        <MissingPage
+          personData={personData}
+          activePerson={activePerson}
         />
       )}
 

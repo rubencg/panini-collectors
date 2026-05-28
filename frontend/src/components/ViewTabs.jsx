@@ -1,7 +1,7 @@
 import { Icon } from './Icons.jsx'
 import { TOTAL_STICKERS } from '../data.js'
 
-export function ViewTabs({ activeView, setActiveView, albumCount, dupesCount, swapCount, inOtherAccountCount }) {
+export function ViewTabs({ activeView, setActiveView, albumCount, dupesCount, swapCount, inOtherAccountCount, missingCount }) {
   return (
     <div className="viewtabs">
       <button className={`viewtab ${activeView === 'album' ? 'active' : ''}`} onClick={() => setActiveView('album')}>
@@ -25,6 +25,12 @@ export function ViewTabs({ activeView, setActiveView, albumCount, dupesCount, sw
         <Icon.Stack /> Other Acct
         {inOtherAccountCount > 0 && (
           <span className="count mono other-acct-tab-badge">{inOtherAccountCount}</span>
+        )}
+      </button>
+      <button className={`viewtab ${activeView === 'missing' ? 'active' : ''}`} onClick={() => setActiveView('missing')}>
+        <Icon.Album /> Missing
+        {missingCount > 0 && (
+          <span className="count mono missing-tab-badge">{missingCount}</span>
         )}
       </button>
     </div>

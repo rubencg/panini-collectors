@@ -1401,6 +1401,52 @@ input { font-family: inherit; }
   color: var(--warn);
 }
 
+/* ============ MISSING PAGE ============ */
+.missing-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.missing-group {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+.missing-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.missing-group-code {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 36px;
+}
+.missing-group-count {
+  font-size: 10.5px;
+  color: var(--danger);
+}
+.missing-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.missing-chip {
+  font-size: 11px;
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+.missing-tab-badge {
+  color: var(--danger) !important;
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important;
+}
+
 /* ============ SWAP CARD — 2ND ACCOUNT BADGE ============ */
 .swap-other-acct-badge {
   display: inline-block;
