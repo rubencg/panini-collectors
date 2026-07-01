@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
-import { STICKER_BY_ID, TEAMS } from '../data.js'
+import { STICKER_BY_ID, CODE_ORDER } from '../data.js'
 
-const GROUP_ORDER = ['FWC', ...TEAMS.map(t => t.code)]
-const GROUP_RANK = Object.fromEntries(GROUP_ORDER.map((code, i) => [code, i]))
+const GROUP_RANK = Object.fromEntries(CODE_ORDER.map((code, i) => [code, i]))
 
 function sortByAlbumOrder(ids) {
   return [...ids].sort((a, b) => {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { TEAMS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, normalize } from '../data.js'
+import { TEAMS, FWC_COUNT, TROPHY_TOUR_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, normalize } from '../data.js'
 import { Icon } from './Icons.jsx'
 
 function FlagChip({ colors }) {
@@ -27,6 +27,11 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
       if (inAlbum(personData, `FWC-${i}`)) fwcOwned++
     }
     out.FWC = fwcOwned / FWC_COUNT
+    let ttOwned = 0
+    for (let i = 1; i <= TROPHY_TOUR_COUNT; i++) {
+      if (inAlbum(personData, `TT-${i}`)) ttOwned++
+    }
+    out.TT = ttOwned / TROPHY_TOUR_COUNT
     return out
   }, [personData])
 
@@ -42,6 +47,9 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
     let fwcD = 0
     for (let i = 1; i <= FWC_COUNT; i++) fwcD += extraOf(personData, `FWC-${i}`)
     out.FWC = fwcD
+    let ttD = 0
+    for (let i = 1; i <= TROPHY_TOUR_COUNT; i++) ttD += extraOf(personData, `TT-${i}`)
+    out.TT = ttD
     return out
   }, [personData])
 
@@ -58,6 +66,9 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
   const fwcProg = progress.FWC || 0
   const fwcOwned = Math.round(fwcProg * FWC_COUNT)
   const fwcDupes = teamDupes.FWC || 0
+  const ttProg = progress.TT || 0
+  const ttOwned = Math.round(ttProg * TROPHY_TOUR_COUNT)
+  const ttDupes = teamDupes.TT || 0
 
   const matches = (t) => {
     if (!searchQ) return true
@@ -82,6 +93,22 @@ export function TeamGrid({ personData, activePage, onPick, mode, searchQ }) {
         </div>
         <div className="fwc-tile-prog mono">
           {mode === 'dupes' ? (fwcDupes > 0 ? `+${fwcDupes}` : '—') : `${fwcOwned}/${FWC_COUNT}`}
+        </div>
+      </button>
+
+      <button
+        className={`fwc-tile ${activePage === 'TT' ? 'active' : ''}`}
+        onClick={() => onPick('TT')}
+      >
+        <div className="fwc-tile-mark">
+          <Icon.Trophy style={{ color: 'var(--cyan)' }} />
+        </div>
+        <div className="fwc-tile-text">
+          <div className="l1">Trophy Tour</div>
+          <div className="l2">Host Cities</div>
+        </div>
+        <div className="fwc-tile-prog mono">
+          {mode === 'dupes' ? (ttDupes > 0 ? `+${ttDupes}` : '—') : `${ttOwned}/${TROPHY_TOUR_COUNT}`}
         </div>
       </button>
 

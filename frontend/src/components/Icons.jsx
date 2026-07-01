@@ -40,6 +40,13 @@ export const Icon = {
       <polygon points="12,6 17.5,9.5 17.5,14.5 12,18 6.5,14.5 6.5,9.5" fill="currentColor" fillOpacity="0.18" />
     </svg>
   ),
+  Trophy: (p) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" />
+      <path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />
+      <path d="M10 14.5V17h4v-2.5M8.5 21h7M12 17v4" />
+    </svg>
+  ),
   ChevronLeft: (p) => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M15 18l-6-6 6-6"/>

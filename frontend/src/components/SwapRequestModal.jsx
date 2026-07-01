@@ -1,16 +1,17 @@
 import { useState, useMemo, useEffect } from 'react'
-import { PEOPLE, STICKER_BY_ID, STICKERS_PER_TEAM, FWC_COUNT } from '../data.js'
+import { PEOPLE, STICKER_BY_ID, STICKERS_PER_TEAM, FWC_COUNT, TROPHY_TOUR_COUNT } from '../data.js'
 
 function ownedCountForCode(personData, code) {
-  const total = code === 'FWC' ? FWC_COUNT : STICKERS_PER_TEAM
-  let owned = 0
-  if (code === 'FWC') {
-    for (let i = 1; i <= FWC_COUNT; i++) {
-      const s = personData?.[`FWC-${i}`]
+  let owned = 0, total
+  if (code === 'FWC' || code === 'TT') {
+    total = code === 'FWC' ? FWC_COUNT : TROPHY_TOUR_COUNT
+    for (let i = 1; i <= total; i++) {
+      const s = personData?.[`${code}-${i}`]
       if ((s?.count || 0) >= 1 || s?.inOtherAccount) owned++
     }
   } else {
-    for (let i = 0; i < STICKERS_PER_TEAM; i++) {
+    total = STICKERS_PER_TEAM
+    for (let i = 0; i < total; i++) {
       const s = personData?.[`${code}-${i}`]
       if ((s?.count || 0) >= 1 || s?.inOtherAccount) owned++
     }

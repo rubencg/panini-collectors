@@ -23,11 +23,11 @@ function FlagChip({ colors }) {
 function albumOf(personData, id) { return personData?.[id]?.count || 0 }
 function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
-function DupeSticker({ sticker, count, extra, onPlus, onMinus, isFWC, searchQ }) {
+function DupeSticker({ sticker, count, extra, onPlus, onMinus, section, searchQ }) {
   const owned = count >= 1
-  const isLogo = !isFWC && sticker.num === 0
+  const isLogo = !section && sticker.num === 0
   return (
-    <div className={`sticker dupe-sticker ${extra > 0 ? 'has-dupes' : owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''}`}>
+    <div className={`sticker dupe-sticker ${extra > 0 ? 'has-dupes' : owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''} ${sticker.update ? 'update' : ''}`}>
       <div className="sticker-top">
         <div className="sticker-id">
           <span>{sticker.code}</span>
@@ -37,16 +37,16 @@ function DupeSticker({ sticker, count, extra, onPlus, onMinus, isFWC, searchQ })
           <div className="dupe-pill mono">+{extra}</div>
         )}
       </div>
-      {!isFWC && (
+      {!section && (
         <>
-          <div className="sticker-tag">{isLogo ? 'Federation' : 'Player'}</div>
+          <div className="sticker-tag">{isLogo ? 'Federation' : sticker.update ? 'Update' : 'Player'}</div>
           <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
         </>
       )}
-      {isFWC && (
+      {section && (
         <>
           <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
-          <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
+          <div className="sticker-tag" style={{ marginTop: 'auto' }}>{section.tag}</div>
         </>
       )}
 
@@ -72,22 +72,22 @@ function DupeSticker({ sticker, count, extra, onPlus, onMinus, isFWC, searchQ })
   )
 }
 
-export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activePerson, searchQ, onPrev, onNext }) {
+export function DupesPage({ section, team, stickers, personData, onAdjust, activePerson, searchQ, onPrev, onNext }) {
   const totalDupes = stickers.reduce((acc, s) => acc + extraOf(personData, s.id), 0)
   return (
     <div className="page">
       <div className="page-head">
         <div className="page-head-left">
-          {!isFWC ? (
+          {!section ? (
             <div className="page-flag"><FlagChip colors={team.colors} /></div>
           ) : (
             <div className="page-flag" style={{ background: 'var(--bg-3)', display: 'grid', placeItems: 'center' }}>
-              <Icon.Brand style={{ color: 'var(--cyan)' }} />
+              <section.icon style={{ color: 'var(--cyan)' }} />
             </div>
           )}
           <div className="page-titles">
-            <div className="pt-eyebrow">{isFWC ? 'Dupes · FWC' : `Dupes · Group ${team.group} · ${team.code}`}</div>
-            <h2><Highlight text={isFWC ? 'FIFA World Cup' : team.name} query={searchQ} /></h2>
+            <div className="pt-eyebrow">{section ? `Dupes · ${section.short}` : `Dupes · Group ${team.group} · ${team.code}`}</div>
+            <h2><Highlight text={section ? section.title : team.name} query={searchQ} /></h2>
             <div className="pt-meta">{activePerson}'s dupes · {totalDupes} extra copies on this page</div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function DupesPage({ isFWC, team, stickers, personData, onAdjust, activeP
             extra={extraOf(personData, s.id)}
             onPlus={() => onAdjust(s.id, +1)}
             onMinus={() => onAdjust(s.id, -1)}
-            isFWC={isFWC}
+            section={section}
             searchQ={searchQ}
           />
         ))}

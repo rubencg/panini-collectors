@@ -25,9 +25,9 @@ function Highlight({ text, query }) {
 function albumOf(personData, id) { return personData?.[id]?.count || 0 }
 function extraOf(personData, id) { return personData?.[id]?.extra || 0 }
 
-function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggleOtherAccount, isFWC, searchQ }) {
+function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggleOtherAccount, section, searchQ }) {
   const owned = count >= 1
-  const isLogo = !isFWC && sticker.num === 0
+  const isLogo = !section && sticker.num === 0
   return (
     <div
       className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''} ${sticker.update ? 'update' : ''} ${!owned && inOtherAccount ? 'in-other-account' : ''}`}
@@ -53,16 +53,16 @@ function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggle
           )}
         </div>
       </div>
-      {!isFWC && (
+      {!section && (
         <>
           <div className="sticker-tag">{isLogo ? 'Federation' : sticker.update ? 'Update' : 'Player'}</div>
           <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
         </>
       )}
-      {isFWC && (
+      {section && (
         <>
           <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
-          <div className="sticker-tag" style={{ marginTop: 'auto' }}>FIFA · Intro</div>
+          <div className="sticker-tag" style={{ marginTop: 'auto' }}>{section.tag}</div>
         </>
       )}
       {extra > 0 && (
@@ -72,23 +72,23 @@ function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggle
   )
 }
 
-export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggleOtherAccount, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ, onPrev, onNext }) {
+export function AlbumPage({ section, team, stickers, personData, onToggle, onToggleOtherAccount, onMarkAll, onUnmarkAll, count, ownedCount, progress, activePerson, searchQ, onPrev, onNext }) {
   const allOwned = ownedCount === count
   const noneOwned = ownedCount === 0
   return (
     <div className="page">
       <div className="page-head">
         <div className="page-head-left">
-          {!isFWC ? (
+          {!section ? (
             <div className="page-flag"><FlagChip colors={team.colors} /></div>
           ) : (
             <div className="page-flag" style={{ background: 'var(--bg-3)', display: 'grid', placeItems: 'center' }}>
-              <Icon.Brand style={{ color: 'var(--cyan)' }} />
+              <section.icon style={{ color: 'var(--cyan)' }} />
             </div>
           )}
           <div className="page-titles">
-            <div className="pt-eyebrow">{isFWC ? 'Intro · FWC' : `Group ${team.group} · ${team.code}`}</div>
-            <h2><Highlight text={isFWC ? 'FIFA World Cup' : team.name} query={searchQ} /></h2>
+            <div className="pt-eyebrow">{section ? section.eyebrow : `Group ${team.group} · ${team.code}`}</div>
+            <h2><Highlight text={section ? section.title : team.name} query={searchQ} /></h2>
             <div className="pt-meta">{activePerson}'s album · {ownedCount}/{count} collected</div>
           </div>
         </div>
@@ -127,7 +127,7 @@ export function AlbumPage({ isFWC, team, stickers, personData, onToggle, onToggl
             inOtherAccount={inOtherAccountOf(personData, s.id)}
             onClick={() => onToggle(s.id)}
             onToggleOtherAccount={() => onToggleOtherAccount(s.id)}
-            isFWC={isFWC}
+            section={section}
             searchQ={searchQ}
           />
         ))}

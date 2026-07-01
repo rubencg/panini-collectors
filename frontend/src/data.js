@@ -83,6 +83,18 @@ export const FWC_LABELS = [
   "Host Country Emblem - USA",
 ]
 
+// "Trophy Tour" — standalone section (like FWC), one card per host/tour stop.
+export const TROPHY_TOUR_COUNT = 31
+export const TROPHY_TOUR_LABELS = [
+  "Coca-Cola",
+  "Algeria", "Argentina", "Austria", "Bangladesh", "Brazil",
+  "Canada", "Colombia", "Ecuador", "Egypt", "France",
+  "Guatemala", "Honduras", "India", "Indonesia", "Côte d'Ivoire",
+  "Japan", "Kazakhstan", "Malaysia", "Mexico", "Morocco",
+  "Portugal", "Saudi Arabia", "South Africa", "Korea Republic", "Spain",
+  "Thailand", "Türkiye", "Uruguay", "USA", "Uzbekistan",
+]
+
 export const TEAM_LABELS = {
   MEX: ["Mexico Logo", "Luis Malagón", "Johan Vásquez", "César Montes", "Jesús Gallardo", "Israel Reyes", "Edson Álvarez", "Marcel Ruiz", "Hirving Lozano", "Raúl Jiménez", "Alexis Vega", "Roberto Alvarado"],
   RSA: ["South Africa Logo", "Ronwen Williams", "Aubrey Modiba", "Mbekezeli Mbokazi", "Siyabonga Ngezana", "Khuliso Mudau", "Teboho Mokoena", "Yaya Sithole", "Bathusi Aubaas", "Sipho Mbule", "Lyle Foster", "Oswin Appollis"],
@@ -201,6 +213,9 @@ export function buildAllStickers() {
   for (let i = 1; i <= FWC_COUNT; i++) {
     list.push({ id: `FWC-${i}`, group: "FWC", code: "FWC", num: i, label: FWC_LABELS[i - 1] })
   }
+  for (let i = 1; i <= TROPHY_TOUR_COUNT; i++) {
+    list.push({ id: `TT-${i}`, group: "TT", code: "TT", num: i, label: TROPHY_TOUR_LABELS[i - 1] })
+  }
   for (const t of TEAMS) {
     for (let i = 0; i < STICKERS_PER_TEAM; i++) {
       list.push({
@@ -219,6 +234,9 @@ export function buildAllStickers() {
 export const ALL_STICKERS = buildAllStickers()
 export const TOTAL_STICKERS = ALL_STICKERS.length
 export const STICKER_BY_ID = Object.fromEntries(ALL_STICKERS.map(s => [s.id, s]))
+
+// Album order of every section code: FWC, Trophy Tour, then teams by group.
+export const CODE_ORDER = ["FWC", "TT", ...TEAMS.map(t => t.code)]
 
 // "MEX-3" -> "03 Lozano" ; falls back to padded number if no label.
 export function stickerLabelFromId(id) {

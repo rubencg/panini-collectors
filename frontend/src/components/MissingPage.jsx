@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { ALL_STICKERS, TEAMS } from '../data.js'
+import { ALL_STICKERS, CODE_ORDER } from '../data.js'
 
-const TEAM_ORDER = ['FWC', ...TEAMS.map(t => t.code)]
+const TEAM_ORDER = CODE_ORDER
 
 export function MissingPage({ personData, activePerson }) {
   const grouped = useMemo(() => {

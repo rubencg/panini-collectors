@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, normalize } from './data.js'
+import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, CODE_ORDER, TROPHY_TOUR_LABELS, normalize } from './data.js'
+import { Icon } from './components/Icons.jsx'
 import { Header } from './components/Header.jsx'
 import { PersonTabs } from './components/PersonTabs.jsx'
 import { ViewTabs } from './components/ViewTabs.jsx'
@@ -25,6 +26,12 @@ function inOtherAccountOf(personData, id) { return personData?.[id]?.inOtherAcco
 function inAlbum(personData, id) { return albumOf(personData, id) >= 1 }
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
+
+// Standalone (non-team) sections rendered like FWC. Keyed by page/group code.
+const SECTION_META = {
+  FWC: { code: 'FWC', icon: Icon.Brand, title: 'FIFA World Cup', eyebrow: 'Intro · FWC', short: 'FWC', tag: 'FIFA · Intro' },
+  TT: { code: 'TT', icon: Icon.Trophy, title: 'Trophy Tour', eyebrow: 'Host Cities · Trophy Tour', short: 'Trophy Tour', tag: 'Trophy Tour' },
+}
 
 async function apiPut(person, stickerId, fields) {
   try {
@@ -118,7 +125,7 @@ export default function App() {
     const m = qUp.match(/^([A-Z]{3})\s*-?\s*(\d+)?$/)
     if (m) {
       const code = m[1]
-      if (code === 'FWC') { setActivePage('FWC'); return }
+      if (code === 'FWC' || code === 'TT') { setActivePage(code); return }
       if (TEAMS.find(t => t.code === code)) { setActivePage(code); return }
     }
     const qNorm = normalize(q).toUpperCase()
@@ -127,6 +134,10 @@ export default function App() {
         setActivePage(code)
         return
       }
+    }
+    if (TROPHY_TOUR_LABELS.some(l => normalize(l).toUpperCase().includes(qNorm))) {
+      setActivePage('TT')
+      return
     }
   }, [search])
 
@@ -232,9 +243,9 @@ export default function App() {
   const pageOwned = pageStickers.filter(s => inAlbum(personData, s.id)).length
   const pageProgress = pageCount > 0 ? pageOwned / pageCount : 0
   const activeTeam = TEAMS.find(t => t.code === activePage)
-  const isFWC = activePage === 'FWC'
+  const section = SECTION_META[activePage] || null
 
-  const PAGE_ORDER = useMemo(() => ['FWC', ...TEAMS.map(t => t.code)], [])
+  const PAGE_ORDER = CODE_ORDER
   const goToPrev = useCallback(() => {
     setActivePage(prev => {
       const idx = PAGE_ORDER.indexOf(prev)
@@ -527,7 +538,7 @@ export default function App() {
             />
             {activeView === 'album' ? (
               <AlbumPage
-                isFWC={isFWC}
+                section={section}
                 team={activeTeam}
                 stickers={pageStickers}
                 personData={personData}
@@ -545,7 +556,7 @@ export default function App() {
               />
             ) : (
               <DupesPage
-                isFWC={isFWC}
+                section={section}
                 team={activeTeam}
                 stickers={pageStickers}
                 personData={personData}
@@ -636,7 +647,7 @@ export default function App() {
         <ConfirmModal
           kind={confirm.kind}
           person={activePerson}
-          page={isFWC ? 'FWC' : activeTeam?.name}
+          page={section ? section.short : activeTeam?.name}
           swap={confirm.swap}
           onCancel={() => setConfirm(null)}
           onConfirm={confirm.action}
