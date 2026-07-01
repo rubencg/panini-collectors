@@ -9,7 +9,7 @@ import packOpeningsRouter from './routes/packOpenings.js'
 
 export const prisma = new PrismaClient()
 
-const PEOPLE = ['Ivan', 'Ruy', 'Giovanni', 'Ruben', 'Andres']
+const PEOPLE = ['Ivan', 'Ruy', 'Giovanni', 'Ruben', 'Tavo']
 
 async function seed() {
   for (const name of PEOPLE) {

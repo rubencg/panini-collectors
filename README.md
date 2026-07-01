@@ -1,6 +1,6 @@
 # Panini 2026 Collection Tracker
 
-A sticker collection manager for the FIFA World Cup 2026 Panini album. Tracks which stickers each of 5 collectors (Ivan, Ruy, Giovanni, Ruben, Andres) owns, which ones are duplicates, and suggests trades between collectors.
+A sticker collection manager for the FIFA World Cup 2026 Panini album. Tracks which stickers each of 5 collectors (Ivan, Ruy, Giovanni, Ruben, Tavo) owns, which ones are duplicates, and suggests trades between collectors.
 
 ## What it does
 
