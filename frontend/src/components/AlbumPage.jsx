@@ -30,7 +30,7 @@ function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggle
   const isLogo = !isFWC && sticker.num === 0
   return (
     <div
-      className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''} ${!owned && inOtherAccount ? 'in-other-account' : ''}`}
+      className={`sticker ${owned ? 'owned' : 'missing'} ${isLogo ? 'logo' : ''} ${sticker.update ? 'update' : ''} ${!owned && inOtherAccount ? 'in-other-account' : ''}`}
       onClick={onClick}
     >
       <div className="sticker-top">
@@ -55,7 +55,7 @@ function AlbumSticker({ sticker, count, extra, inOtherAccount, onClick, onToggle
       </div>
       {!isFWC && (
         <>
-          <div className="sticker-tag">{isLogo ? 'Federation' : 'Player'}</div>
+          <div className="sticker-tag">{isLogo ? 'Federation' : sticker.update ? 'Update' : 'Player'}</div>
           <div className="sticker-name"><Highlight text={sticker.label} query={searchQ} /></div>
         </>
       )}

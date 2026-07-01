@@ -66,7 +66,10 @@ export function normalize(str) {
 }
 
 export const PEOPLE = ["Ivan", "Ruy", "Giovanni", "Ruben", "Tavo"]
-export const STICKERS_PER_TEAM = 12
+export const BASE_STICKERS_PER_TEAM = 12
+// Panini "Update Edition": 2 extra players per team, appended as indexes 12 and 13.
+export const UPDATES_PER_TEAM = 2
+export const STICKERS_PER_TEAM = BASE_STICKERS_PER_TEAM + UPDATES_PER_TEAM
 export const FWC_COUNT = 9
 export const FWC_LABELS = [
   "Panini",
@@ -131,7 +134,63 @@ export const TEAM_LABELS = {
   PAN: ["Panama Logo", "Orlando Mosquera", "Michael Amir Murillo", "Andrés Andrade", "Fidel Escobar", "Aníbal Godoy", "Cristian Martínez", "Adalberto Carrasquilla", "Édgar Bárcenas", "José Fajardo", "Ismael Díaz", "José Luis Rodríguez"],
 }
 
+// Panini "Update Edition" — 2 extra players per team, in card order (left, right).
+export const TEAM_UPDATES = {
+  MEX: ["Orbelín Pineda", "Santiago Giménez"],
+  RSA: ["Khulumani Ndamane", "Iqraam Rayners"],
+  KOR: ["Seungho Paik", "Guesung Cho"],
+  CZE: ["Tomáš Holeš", "Vasil Kušej"],
+  CAN: ["Alistair Johnston", "Liam Millar"],
+  BIH: ["Ivan Bašić", "Haris Tabaković"],
+  QAT: ["Lucas Mendes", "Hassan Al-Haydos"],
+  SUI: ["Ardon Jashari", "Johan Manzambi"],
+  BRA: ["Neymar Jr", "Gabriel Martinelli"],
+  MAR: ["Abde Ezzalzouli", "Ayoub El Kaabi"],
+  HAI: ["Hannes Delcroix", "Louicius Deedson"],
+  SCO: ["Kieran Tierney", "Billy Gilmour"],
+  USA: ["Tanner Tessmann", "Ricardo Pepi"],
+  PAR: ["Damián Bobadilla", "Matías Galarza Fonda"],
+  AUS: ["Miloš Degenek", "Mohamed Touré"],
+  TUR: ["Zeki Çelik", "İsmail Yüksek"],
+  GER: ["Nico Schlotterbeck", "Waldemar Anton"],
+  CUW: ["Tahith Chong", "Gervane Kastaneer"],
+  CIV: ["Odilon Kossounou", "Amad Diallo"],
+  ECU: ["Joel Ordóñez", "Kevin Rodríguez"],
+  NED: ["Nathan Aké", "Jeremie Frimpong"],
+  JPN: ["Junnosuke Suzuki", "Junya Ito"],
+  SWE: ["Gustaf Lagerbielke", "Hugo Larsson"],
+  TUN: ["Yan Valery", "Elias Saad"],
+  BEL: ["Zeno Debast", "Hans Vanaken"],
+  EGY: ["Khaled Sobhi", "Emam Ashour"],
+  IRN: ["Ehsan Hajsafi", "Ali Gholizadeh"],
+  NZL: ["Ryan Thomas", "Callum McCowatt"],
+  ESP: ["Dani Olmo", "Ferran Torres"],
+  CPV: ["Wagner Pina", "Willy Semedo"],
+  KSA: ["Moteb Alharbi", "Marwan Alsahafi"],
+  URU: ["Maxi Araújo", "Giorgian De Arrascaeta"],
+  FRA: ["Dayot Upamecano", "Michael Olise"],
+  SEN: ["Ismail Jakobs", "Pape Gueye"],
+  IRQ: ["Manaf Younis", "Ali Al-Hamadi"],
+  NOR: ["Leo Østigård", "Andreas Schjelderup"],
+  ARG: ["Nico Paz", "Franco Mastantuono"],
+  ALG: ["Ismaël Bennacer", "Houssem Aouar"],
+  AUT: ["Xaver Schlager", "Patrick Wimmer"],
+  JOR: ["Saleem Obaid", "Ibrahim Sabra"],
+  POR: ["João Neves", "Francisco Trincão"],
+  COD: ["Charles Pickel", "Nathanaël Mbuku"],
+  UZB: ["Jamshid Iskanderov", "Igor Sergeev"],
+  COL: ["Jhon Lucumí", "Jhon Córdoba"],
+  ENG: ["Marc Guéhi", "Anthony Gordon"],
+  CRO: ["Martin Baturina", "Petar Sučić"],
+  GHA: ["Mohammed Salisu", "Iñaki Williams"],
+  PAN: ["José Córdoba", "Cecilio Waterman"],
+}
+
 export function stickerLabelFor(team, idx) {
+  if (idx >= BASE_STICKERS_PER_TEAM) {
+    const ups = TEAM_UPDATES[team.code]
+    return ups?.[idx - BASE_STICKERS_PER_TEAM] || `Player ${String(idx).padStart(2, "0")}`
+  }
   const labels = TEAM_LABELS[team.code]
   if (labels) return labels[idx]
   return idx === 0 ? "Logo" : `Player ${String(idx).padStart(2, "0")}`
@@ -150,6 +209,7 @@ export function buildAllStickers() {
         code: t.code,
         num: i,
         label: stickerLabelFor(t, i),
+        update: i >= BASE_STICKERS_PER_TEAM,
       })
     }
   }
