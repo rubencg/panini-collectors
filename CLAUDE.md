@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Panini 2026 Collection Tracker — a full-stack FIFA World Cup 2026 sticker collection manager for 5 people (Ivan, Ruy, Giovanni, Ruben, Tavo). Monorepo with separate `frontend/` and `backend/` directories.
+Panini 2026 Collection Tracker — a full-stack FIFA World Cup 2026 sticker collection manager for 5 people (Ivan, Ruy, Giovanni, Ruben, Andres). Monorepo with separate `frontend/` and `backend/` directories.
 
 ## Commands
 

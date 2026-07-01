@@ -66,12 +66,12 @@ You should see:
 API running on http://localhost:3001
 ```
 
-The server auto-seeds the 5 people (Ivan, Ruy, Giovanni, Ruben, Tavo) on first startup.
+The server auto-seeds the 5 people (Ivan, Ruy, Giovanni, Ruben, Andres) on first startup.
 
 Verify it's working:
 ```bash
 curl http://localhost:3001/api/state
-# → {"Ivan":{},"Ruy":{},"Giovanni":{},"Ruben":{},"Tavo":{}}
+# → {"Ivan":{},"Ruy":{},"Giovanni":{},"Ruben":{},"Andres":{}}
 ```
 
 ---

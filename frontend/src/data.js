@@ -65,7 +65,7 @@ export function normalize(str) {
   return str.normalize('NFD').replace(/\p{Mn}/gu, '')
 }
 
-export const PEOPLE = ["Ivan", "Ruy", "Giovanni", "Ruben", "Tavo"]
+export const PEOPLE = ["Ivan", "Ruy", "Giovanni", "Ruben", "Andres"]
 export const BASE_STICKERS_PER_TEAM = 12
 // Panini "Update Edition": 2 extra players per team, appended as indexes 12 and 13.
 export const UPDATES_PER_TEAM = 2
