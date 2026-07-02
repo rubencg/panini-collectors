@@ -1,4 +1,15 @@
+import { useEffect } from 'react'
+
 export function ConfirmModal({ kind, person, page, swap, onCancel, onConfirm }) {
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); onConfirm() }
+      else if (e.key === 'Escape') { e.preventDefault(); onCancel() }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onConfirm, onCancel])
+
   if (kind === 'delete-swap') {
     return (
       <div className="modal-bg" onClick={onCancel}>
