@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, CODE_ORDER, TROPHY_TOUR_LABELS, normalize } from './data.js'
+import { PEOPLE, TEAMS, ALL_STICKERS, TOTAL_STICKERS, FWC_COUNT, STICKERS_PER_TEAM, TEAM_LABELS, TEAM_UPDATES, CODE_ORDER, TROPHY_TOUR_LABELS, normalize } from './data.js'
 import { Icon } from './components/Icons.jsx'
 import { Header } from './components/Header.jsx'
 import { PersonTabs } from './components/PersonTabs.jsx'
@@ -130,7 +130,8 @@ export default function App() {
     }
     const qNorm = normalize(q).toUpperCase()
     for (const [code, labels] of Object.entries(TEAM_LABELS)) {
-      if (labels.some(l => normalize(l).toUpperCase().includes(qNorm))) {
+      const updates = TEAM_UPDATES[code] || []
+      if ([...labels, ...updates].some(l => normalize(l).toUpperCase().includes(qNorm))) {
         setActivePage(code)
         return
       }
