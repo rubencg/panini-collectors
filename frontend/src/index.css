@@ -1367,6 +1367,17 @@ input { font-family: inherit; }
 .swap-chip--stale.swap-chip--selected {
   background: color-mix(in srgb, var(--warn) 15%, transparent);
 }
+/* Dupe the other bro already has — offered as a gift / for their 2nd account */
+.swap-chip--extra {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--cyan) 55%, transparent);
+  color: var(--cyan);
+}
+.swap-chip--extra.swap-chip--selected {
+  background: color-mix(in srgb, var(--cyan) 16%, transparent);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
 .swap-chip strong { color: inherit; font-weight: 600; }
 .swap-modal-footer {
   display: flex;
@@ -1386,6 +1397,18 @@ input { font-family: inherit; }
   flex-wrap: wrap;
   padding: 10px 22px 12px;
   border-bottom: 1px solid var(--line);
+}
+.swap-modal-dupes-row {
+  display: flex;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--line);
+}
+/* The dupes toggle reuses the 2nd-account check styling but reads in cyan */
+.swap-modal-dupes-row .swap-modal-other-acct-check input[type="checkbox"] {
+  accent-color: var(--cyan);
+}
+.swap-modal-dupes-row .swap-modal-other-acct-check:has(input:checked) span {
+  color: var(--cyan);
 }
 .swap-modal-other-acct-check {
   display: flex;

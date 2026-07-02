@@ -19,7 +19,7 @@ function ownedCountForCode(personData, code) {
   return { owned, total }
 }
 
-function ChipButton({ stickerId, selected, stale, onClick }) {
+function ChipButton({ stickerId, selected, stale, extra, onClick }) {
   const s = STICKER_BY_ID[stickerId]
   const code = stickerId.split('-')[0]
   const num = s ? String(s.num).padStart(2, '0') : (stickerId.split('-')[1] || '')
@@ -28,11 +28,13 @@ function ChipButton({ stickerId, selected, stale, onClick }) {
     : ''
   const tooltip = stale
     ? 'No longer a valid trade — sticker may have changed hands'
+    : extra
+    ? `${s?.label || stickerId} — already in their album (gift / 2nd account)`
     : (s?.label || stickerId)
 
   return (
     <button
-      className={`swap-chip${selected ? ' swap-chip--selected' : ''}${stale ? ' swap-chip--stale' : ''}`}
+      className={`swap-chip${selected ? ' swap-chip--selected' : ''}${stale ? ' swap-chip--stale' : ''}${extra && !stale ? ' swap-chip--extra' : ''}`}
       onClick={onClick}
       title={tooltip}
     >
@@ -41,7 +43,8 @@ function ChipButton({ stickerId, selected, stale, onClick }) {
   )
 }
 
-function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLabel, personData }) {
+function BucketPanel({ label, candidates, staleIds, extraIds, selected, onToggle, countLabel, personData }) {
+  const extraSet = useMemo(() => new Set(extraIds || []), [extraIds])
   // Group candidates + stale items by team code for display
   const allIds = useMemo(() => {
     const ids = new Set([...candidates.map(s => s.id), ...staleIds])
@@ -85,6 +88,7 @@ function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLab
                   stickerId={id}
                   selected={selected.has(id)}
                   stale={!candidateSet.has(id)}
+                  extra={extraSet.has(id)}
                   onClick={() => onToggle(id)}
                 />
               ))}
@@ -97,8 +101,9 @@ function BucketPanel({ label, candidates, staleIds, selected, onToggle, countLab
   )
 }
 
-export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, people, onCancel, onSubmit }) {
+export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, dupeOffers, people, onCancel, onSubmit }) {
   const otherPeople = PEOPLE.filter(p => p !== activePerson)
+  const [showAllDupes, setShowAllDupes] = useState(false)
 
   // When activePerson is the toPerson (swap was created by the other side), flip perspective
   const flipped = !!initial && initial.toPerson === activePerson
@@ -145,18 +150,53 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, pe
     return [...base, ...ownMissing]
   }, [otherBro, tradeMatches, activePerson, mode, initial, flipped])
 
-  // Stale IDs: in initial but no longer a valid candidate
+  // "Show all my dupes": every uncommitted dupe the offerer holds, even ones the
+  // other bro already has (for gifting / their 2nd account). Extras = dupes that
+  // aren't standard trade candidates (other bro owns them or marked 2nd account).
+  const fromExtras = useMemo(() => {
+    if (!showAllDupes) return []
+    const known = new Set(fromCandidates.map(s => s.id))
+    return (dupeOffers?.[activePerson] || []).filter(s => !known.has(s.id))
+  }, [showAllDupes, dupeOffers, activePerson, fromCandidates])
+
+  const toExtras = useMemo(() => {
+    if (!showAllDupes || !otherBro) return []
+    const known = new Set(toCandidates.map(s => s.id))
+    return (dupeOffers?.[otherBro] || []).filter(s => !known.has(s.id))
+  }, [showAllDupes, dupeOffers, otherBro, toCandidates])
+
+  const fromShown = useMemo(() => [...fromCandidates, ...fromExtras], [fromCandidates, fromExtras])
+  const toShown = useMemo(() => [...toCandidates, ...toExtras], [toCandidates, toExtras])
+  const fromExtraIds = useMemo(() => fromExtras.map(s => s.id), [fromExtras])
+  const toExtraIds = useMemo(() => toExtras.map(s => s.id), [toExtras])
+
+  // Turning the toggle off should drop any selected extras so they aren't
+  // silently submitted while hidden.
+  const handleToggleAllDupes = (checked) => {
+    setShowAllDupes(checked)
+    if (!checked) {
+      // Keep candidates and any pre-existing (incl. stale) offers from this swap.
+      const initFrom = flipped ? (initial?.toOffers || []) : (initial?.fromOffers || [])
+      const initTo = flipped ? (initial?.fromOffers || []) : (initial?.toOffers || [])
+      const validFrom = new Set([...fromCandidates.map(s => s.id), ...initFrom])
+      const validTo = new Set([...toCandidates.map(s => s.id), ...initTo])
+      setFromOffers(prev => new Set([...prev].filter(id => validFrom.has(id))))
+      setToOffers(prev => new Set([...prev].filter(id => validTo.has(id))))
+    }
+  }
+
+  // Stale IDs: in initial but no longer a valid candidate (nor a shown dupe)
   const staleFromIds = useMemo(() => {
     if (mode !== 'edit' || !initial?.fromOffers) return []
-    const candidateIds = new Set(fromCandidates.map(s => s.id))
-    return initial.fromOffers.filter(id => !candidateIds.has(id))
-  }, [mode, initial, fromCandidates])
+    const shownIds = new Set(fromShown.map(s => s.id))
+    return initial.fromOffers.filter(id => !shownIds.has(id))
+  }, [mode, initial, fromShown])
 
   const staleToIds = useMemo(() => {
     if (mode !== 'edit' || !initial?.toOffers) return []
-    const candidateIds = new Set(toCandidates.map(s => s.id))
-    return initial.toOffers.filter(id => !candidateIds.has(id))
-  }, [mode, initial, toCandidates])
+    const shownIds = new Set(toShown.map(s => s.id))
+    return initial.toOffers.filter(id => !shownIds.has(id))
+  }, [mode, initial, toShown])
 
   const toggleFrom = (id) => {
     setFromOffers(prev => {
@@ -231,23 +271,35 @@ export function SwapRequestModal({ mode, initial, activePerson, tradeMatches, pe
         {/* Buckets */}
         {otherBro && (
           <>
+            <div className="swap-modal-dupes-row">
+              <label className="swap-modal-other-acct-check">
+                <input
+                  type="checkbox"
+                  checked={showAllDupes}
+                  onChange={e => handleToggleAllDupes(e.target.checked)}
+                />
+                <span>Show all my dupes (incl. ones they already have)</span>
+              </label>
+            </div>
             <div className="swap-modal-buckets">
               <BucketPanel
                 label={`${activePerson} offers`}
-                candidates={fromCandidates}
+                candidates={fromShown}
                 staleIds={staleFromIds}
+                extraIds={fromExtraIds}
                 selected={fromOffers}
                 onToggle={toggleFrom}
-                countLabel={`${fromOffers.size} / ${fromCandidates.length + staleFromIds.length}`}
+                countLabel={`${fromOffers.size} / ${fromShown.length + staleFromIds.length}`}
                 personData={people?.[otherBro] || {}}
               />
               <BucketPanel
                 label={`${otherBro} offers`}
-                candidates={toCandidates}
+                candidates={toShown}
                 staleIds={staleToIds}
+                extraIds={toExtraIds}
                 selected={toOffers}
                 onToggle={toggleTo}
-                countLabel={`${toOffers.size} / ${toCandidates.length + staleToIds.length}`}
+                countLabel={`${toOffers.size} / ${toShown.length + staleToIds.length}`}
                 personData={people?.[activePerson] || {}}
               />
             </div>

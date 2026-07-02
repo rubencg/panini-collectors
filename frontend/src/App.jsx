@@ -313,6 +313,22 @@ export default function App() {
     return matches
   }, [people, committedExtras])
 
+  // Every uncommitted dupe a person holds, regardless of who needs it.
+  // Used by the swap modal's "show all my dupes" toggle (gifts / 2nd account).
+  const dupeOffersByPerson = useMemo(() => {
+    const out = {}
+    for (const person of PEOPLE) {
+      const data = people[person] || {}
+      const list = []
+      for (const s of ALL_STICKERS) {
+        const committed = committedExtras[person]?.[s.id] ?? 0
+        if (extraOf(data, s.id) - committed >= 1) list.push(s)
+      }
+      out[person] = list
+    }
+    return out
+  }, [people, committedExtras])
+
   // Swap requests filtered by active person
   const swapRequestsForActive = useMemo(
     () => swapRequests.filter(s => s.fromPerson === activePerson || s.toPerson === activePerson),
@@ -675,6 +691,7 @@ export default function App() {
           initial={swapModal.mode === 'edit' ? swapRequests.find(s => s.id === swapModal.id) : null}
           activePerson={activePerson}
           tradeMatches={tradeMatches}
+          dupeOffers={dupeOffersByPerson}
           people={people}
           onCancel={() => setSwapModal(null)}
           onSubmit={async (payload) => {
